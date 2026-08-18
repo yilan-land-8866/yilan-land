@@ -1,0 +1,1340 @@
+/* ==========================================================================
+   Apple (iOS) Native Mobile UI Design System & Fluid Responsive Stylesheet
+   ========================================================================== */
+
+:root {
+    /* Apple System Colors */
+    --ios-bg: #f2f2f7;
+    --ios-card-bg: #ffffff;
+    --ios-grouped-bg: #ffffff;
+    --ios-text-primary: #000000;
+    --ios-text-secondary: #8e8e93;
+    --ios-text-tertiary: #c7c7cc;
+    --ios-blue: #007aff;
+    --ios-green: #34c759;
+    --ios-orange: #ff9500;
+    --ios-red: #ff3b30;
+    --ios-purple: #af52de;
+    --ios-teal: #5ac8fa;
+    --ios-yellow: #ffcc00;
+    
+    /* Yungching Accent Brand */
+    --yc-orange: #f59e0b;
+    --yc-orange-dark: #d97706;
+    
+    /* Separators & Borders */
+    --ios-separator: rgba(60, 60, 67, 0.12);
+    --ios-separator-opaque: #e5e5ea;
+    --ios-fill-tertiary: rgba(118, 118, 128, 0.12);
+    --ios-fill-secondary: rgba(120, 120, 128, 0.16);
+
+    /* Apple Frosted Glass Blur */
+    --ios-glass-bg: rgba(242, 242, 247, 0.82);
+    --ios-glass-card: rgba(255, 255, 255, 0.88);
+    --ios-tab-glass: rgba(255, 255, 255, 0.88);
+    
+    /* Shadows */
+    --ios-card-shadow: 0 2px 10px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+    --ios-sheet-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+    --ios-tab-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+
+    /* Safe Area insets */
+    --safe-top: env(safe-area-inset-top, 20px);
+    --safe-bottom: env(safe-area-inset-bottom, 20px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+
+    /* Radius */
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+    --r-xl: 20px;
+    --r-sheet: 24px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ios-bg: #000000;
+        --ios-card-bg: #1c1c1e;
+        --ios-grouped-bg: #1c1c1e;
+        --ios-text-primary: #ffffff;
+        --ios-text-secondary: #8e8e93;
+        --ios-text-tertiary: #48484a;
+        --ios-separator: rgba(84, 84, 88, 0.65);
+        --ios-separator-opaque: #38383a;
+        --ios-fill-tertiary: rgba(118, 118, 128, 0.24);
+        --ios-fill-secondary: rgba(120, 120, 128, 0.32);
+        --ios-glass-bg: rgba(0, 0, 0, 0.82);
+        --ios-glass-card: rgba(28, 28, 30, 0.88);
+        --ios-tab-glass: rgba(28, 28, 30, 0.92);
+        --ios-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+}
+
+/* Base Reset & Apple Typography */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "PingFang TC", "Heiti TC", "Microsoft JhengHei", sans-serif;
+    user-select: none;
+}
+
+input, button, select, textarea {
+    user-select: auto;
+    font-family: inherit;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--ios-bg);
+    color: var(--ios-text-primary);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* App Viewport Container */
+.ios-app-container {
+    width: 100%;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   1. 密碼驗證畫面 (iOS Password Gate)
+   ========================================================================== */
+.ios-auth-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background-color: var(--ios-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    backdrop-filter: blur(20px);
+}
+
+.ios-auth-card {
+    width: 100%;
+    max-width: 360px;
+    background: var(--ios-card-bg);
+    border-radius: var(--r-xl);
+    padding: 32px 24px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.ios-auth-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    background: linear-gradient(135deg, var(--yc-orange), #f97316);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 28px;
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
+}
+
+.ios-auth-card h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.ios-auth-card .subtitle {
+    font-size: 14px;
+    color: var(--ios-text-secondary);
+    margin-bottom: 24px;
+}
+
+.ios-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ios-input-group input {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--ios-fill-tertiary);
+    border: 1px solid var(--ios-separator);
+    border-radius: var(--r-md);
+    font-size: 16px;
+    text-align: center;
+    color: var(--ios-text-primary);
+    outline: none;
+    letter-spacing: 2px;
+}
+
+.ios-input-group input:focus {
+    border-color: var(--ios-blue);
+    background: var(--ios-card-bg);
+}
+
+.ios-input-group button {
+    width: 100%;
+    padding: 14px;
+    background: var(--ios-blue);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--r-md);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.ios-input-group button:active {
+    transform: scale(0.97);
+    opacity: 0.85;
+}
+
+.auth-error {
+    color: var(--ios-red);
+    font-size: 13px;
+    margin-top: 10px;
+    min-height: 18px;
+}
+
+.auth-hint {
+    font-size: 12px;
+    color: var(--ios-text-secondary);
+    margin-top: 16px;
+}
+
+/* ==========================================================================
+   2. 頂部 Apple Navigation Bar
+   ========================================================================== */
+.ios-nav-header {
+    background: var(--ios-glass-bg);
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    border-bottom: 0.5px solid var(--ios-separator);
+    z-index: 100;
+    flex-shrink: 0;
+}
+
+.ios-status-spacer {
+    height: var(--safe-top);
+}
+
+.ios-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 16px 2px;
+}
+
+.ios-app-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--yc-orange-dark);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ios-large-title {
+    font-size: clamp(22px, 5.5vw, 26px);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.ios-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ios-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--ios-fill-tertiary);
+    border: none;
+    color: var(--ios-text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.15s ease;
+}
+
+.ios-icon-btn:active {
+    transform: scale(0.92);
+}
+
+/* iOS 分段控制器 (Segmented Control) */
+.ios-segment-wrapper {
+    padding: 6px 16px 4px;
+}
+
+.ios-segment-control {
+    display: flex;
+    background: var(--ios-fill-tertiary);
+    padding: 3px;
+    border-radius: var(--r-md);
+    position: relative;
+}
+
+.segment-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    color: var(--ios-text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.segment-btn.active {
+    background: var(--ios-card-bg);
+    color: var(--ios-text-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.seg-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.segment-btn.active .seg-badge {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--yc-orange-dark);
+}
+
+/* iOS 搜尋欄 */
+.ios-search-wrapper {
+    padding: 6px 16px 8px;
+}
+
+.ios-search-bar {
+    display: flex;
+    align-items: center;
+    background: var(--ios-fill-tertiary);
+    border-radius: var(--r-md);
+    padding: 8px 12px;
+    gap: 8px;
+}
+
+.search-icon {
+    color: var(--ios-text-secondary);
+    font-size: 14px;
+}
+
+.ios-search-bar input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 15px;
+    color: var(--ios-text-primary);
+}
+
+.ios-search-bar input::placeholder {
+    color: var(--ios-text-secondary);
+}
+
+.clear-btn {
+    border: none;
+    background: transparent;
+    color: var(--ios-text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* 快速標籤藥丸列 (Pills Scroll) */
+.ios-pills-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 2px 16px 8px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.ios-pills-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.pill-btn {
+    white-space: nowrap;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 20px;
+    background: var(--ios-fill-tertiary);
+    color: var(--ios-text-secondary);
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.pill-btn.active {
+    background: var(--ios-text-primary);
+    color: var(--ios-bg);
+}
+
+.pill-btn-sm {
+    white-space: nowrap;
+    padding: 5px 11px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 16px;
+    background: var(--ios-fill-tertiary);
+    color: var(--ios-text-secondary);
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.pill-btn-sm.active {
+    background: var(--yc-orange);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.ios-pills-scroll.sub-pills {
+    padding-bottom: 8px;
+    border-bottom: 0.5px solid var(--ios-separator);
+}
+
+/* 結果摘要列 */
+.ios-result-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 16px 8px;
+    font-size: 13px;
+    color: var(--ios-text-secondary);
+}
+
+.ios-result-bar .result-count b {
+    color: var(--ios-text-primary);
+}
+
+.ios-sort-btn {
+    border: none;
+    background: transparent;
+    color: var(--ios-blue);
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   3. 主要卡片內容區 (Scrollable Main Area)
+   ========================================================================== */
+.ios-main-content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px 16px;
+}
+
+.ios-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* 案件卡片 (Native iOS Card) */
+.ios-property-card {
+    background: var(--ios-card-bg);
+    border-radius: var(--r-lg);
+    padding: 14px 16px;
+    box-shadow: var(--ios-card-shadow);
+    border: 0.5px solid var(--ios-separator);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ios-property-card:active {
+    transform: scale(0.985);
+}
+
+.card-top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.card-category-tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.cat-華廈 { background: #3b82f6; }
+.cat-透天 { background: #10b981; }
+.cat-農地 { background: #84cc16; }
+.cat-建地 { background: #f59e0b; }
+.cat-別墅 { background: #8b5cf6; }
+.cat-農舍 { background: #06b6d4; }
+.cat-店面 { background: #ec4899; }
+.cat-廠房 { background: #64748b; }
+.cat-套房 { background: #6366f1; }
+.cat-公寓 { background: #14b8a6; }
+.cat-其他 { background: #94a3b8; }
+
+.card-title {
+    flex: 1;
+    font-size: clamp(15px, 4vw, 16px);
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--ios-text-primary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.card-fav-btn {
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    color: var(--ios-text-tertiary);
+    cursor: pointer;
+    padding: 2px;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.card-fav-btn.active {
+    color: var(--yc-orange);
+    transform: scale(1.15);
+}
+
+.card-location-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--ios-text-secondary);
+}
+
+.card-location-row i {
+    color: var(--ios-red);
+    font-size: 12px;
+}
+
+.card-location-row span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    background: var(--ios-fill-tertiary);
+    padding: 8px 10px;
+    border-radius: var(--r-md);
+    gap: 4px;
+    text-align: center;
+}
+
+.metric-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-label {
+    font-size: 11px;
+    color: var(--ios-text-secondary);
+}
+
+.metric-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ios-text-primary);
+}
+
+.card-bottom-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-top: 4px;
+    border-top: 0.5px solid var(--ios-separator);
+}
+
+.card-agent-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ios-text-secondary);
+}
+
+.agent-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--ios-blue);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.card-price-badge {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.card-price-badge .price-num {
+    font-size: clamp(20px, 5.5vw, 24px);
+    font-weight: 800;
+    color: var(--yc-orange-dark);
+}
+
+.card-price-badge .price-unit {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--yc-orange-dark);
+}
+
+/* 載入與空白狀態 */
+.ios-loading-state, .ios-empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--ios-text-secondary);
+}
+
+.ios-loading-state i {
+    font-size: 32px;
+    color: var(--ios-blue);
+    margin-bottom: 12px;
+}
+
+.ios-empty-state i {
+    font-size: 48px;
+    color: var(--ios-text-tertiary);
+    margin-bottom: 12px;
+}
+
+.ios-empty-state p {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ios-text-primary);
+    margin-bottom: 4px;
+}
+
+.ios-empty-state span {
+    font-size: 13px;
+}
+
+/* 底部分頁列 */
+.ios-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+}
+
+.ios-btn-secondary {
+    padding: 8px 16px;
+    background: var(--ios-card-bg);
+    border: 0.5px solid var(--ios-separator);
+    border-radius: var(--r-md);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ios-text-primary);
+    cursor: pointer;
+}
+
+.ios-btn-secondary:disabled {
+    opacity: 0.4;
+}
+
+.page-indicator {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ios-text-secondary);
+}
+
+.ios-tab-spacer {
+    height: calc(75px + var(--safe-bottom));
+}
+
+/* ==========================================================================
+   4. 底部懸浮標籤欄 (Floating Bottom Tab Bar)
+   ========================================================================== */
+.ios-tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--ios-tab-glass);
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    border-top: 0.5px solid var(--ios-separator);
+    display: flex;
+    justify-content: space-around;
+    padding-top: 6px;
+    padding-bottom: max(6px, var(--safe-bottom));
+    z-index: 200;
+    box-shadow: var(--ios-tab-shadow);
+}
+
+.tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    border: none;
+    background: transparent;
+    color: var(--ios-text-secondary);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    padding: 2px 14px;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.tab-item i {
+    font-size: 20px;
+}
+
+.tab-item.active {
+    color: var(--yc-orange-dark);
+}
+
+.tab-item:active {
+    transform: scale(0.92);
+}
+
+.tab-badge {
+    position: absolute;
+    top: 0px;
+    right: 8px;
+    background: var(--ios-red);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 10px;
+}
+
+/* ==========================================================================
+   5. 收藏夾與統計視圖 (Subviews)
+   ========================================================================== */
+.ios-subview {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.subview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.subview-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.fav-count-badge {
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--yc-orange);
+    color: #ffffff;
+    padding: 3px 10px;
+    border-radius: 12px;
+}
+
+/* 行情統計樣式 */
+.stats-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.kpi-card {
+    background: var(--ios-card-bg);
+    border-radius: var(--r-md);
+    padding: 14px;
+    box-shadow: var(--ios-card-shadow);
+    border: 0.5px solid var(--ios-separator);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.kpi-label {
+    font-size: 12px;
+    color: var(--ios-text-secondary);
+}
+
+.kpi-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--ios-text-primary);
+}
+
+.stats-section {
+    background: var(--ios-card-bg);
+    border-radius: var(--r-lg);
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--ios-card-shadow);
+    border: 0.5px solid var(--ios-separator);
+}
+
+.stats-section h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.town-stats-list, .cat-stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-row-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    padding: 6px 0;
+    border-bottom: 0.5px solid var(--ios-separator);
+}
+
+.stat-row-item:last-child {
+    border-bottom: none;
+}
+
+/* ==========================================================================
+   6. 底部滑出抽屜頁 (iOS Bottom Sheet)
+   ========================================================================== */
+.ios-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 500;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ios-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.ios-bottom-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 88dvh;
+    background: var(--ios-card-bg);
+    border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+    z-index: 600;
+    transform: translateY(100%);
+    transition: transform 0.32s cubic-bezier(0.32, 1, 0.23, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--ios-sheet-shadow);
+}
+
+.ios-bottom-sheet.active {
+    transform: translateY(0);
+}
+
+.sheet-handle-bar {
+    width: 100%;
+    padding: 10px 0 4px;
+    display: flex;
+    justify-content: center;
+    cursor: grab;
+}
+
+.sheet-handle {
+    width: 40px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--ios-text-tertiary);
+}
+
+.sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 20px 10px;
+}
+
+.sheet-category-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: var(--ios-blue);
+    color: #ffffff;
+}
+
+.sheet-close-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--ios-fill-tertiary);
+    border: none;
+    color: var(--ios-text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.sheet-body {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 20px calc(20px + var(--safe-bottom));
+}
+
+.sheet-title {
+    font-size: clamp(18px, 5vw, 22px);
+    font-weight: 800;
+    line-height: 1.35;
+    margin-bottom: 12px;
+}
+
+.sheet-price-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(245, 158, 11, 0.08);
+    border-radius: var(--r-md);
+    margin-bottom: 16px;
+}
+
+.sheet-main-price .price-val {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--yc-orange-dark);
+}
+
+.sheet-main-price .price-unit {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--yc-orange-dark);
+    margin-left: 2px;
+}
+
+.sheet-unit-price {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ios-text-secondary);
+}
+
+.sheet-specs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.spec-cell {
+    background: var(--ios-fill-tertiary);
+    padding: 10px 14px;
+    border-radius: var(--r-md);
+    display: flex;
+    flex-direction: column;
+}
+
+.spec-label {
+    font-size: 12px;
+    color: var(--ios-text-secondary);
+}
+
+.spec-val {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ios-text-primary);
+}
+
+.font-mono {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.sheet-info-card {
+    background: var(--ios-card-bg);
+    border: 0.5px solid var(--ios-separator);
+    border-radius: var(--r-lg);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    position: relative;
+}
+
+.info-row i {
+    color: var(--ios-blue);
+    font-size: 16px;
+    margin-top: 2px;
+    width: 20px;
+    text-align: center;
+}
+
+.info-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.info-title {
+    font-size: 11px;
+    color: var(--ios-text-secondary);
+}
+
+.info-text {
+    font-size: 14px;
+    color: var(--ios-text-primary);
+    word-break: break-all;
+}
+
+.map-link-btn {
+    padding: 6px 12px;
+    background: var(--ios-blue);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+/* 業務神功能按鈕 */
+.sheet-action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.action-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: var(--r-md);
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.action-btn:active {
+    transform: scale(0.98);
+    opacity: 0.88;
+}
+
+.btn-line {
+    background: #06c755;
+    color: #ffffff;
+    font-size: 16px;
+}
+
+.action-btn-row {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-share {
+    background: var(--ios-fill-tertiary);
+    color: var(--ios-blue);
+}
+
+.btn-fav {
+    background: var(--ios-fill-tertiary);
+    color: var(--ios-text-primary);
+}
+
+.btn-fav.active {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--yc-orange-dark);
+}
+
+/* 篩選抽屜樣式 */
+.filter-group {
+    margin-bottom: 20px;
+}
+
+.filter-label {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.range-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.range-inputs input {
+    flex: 1;
+    padding: 12px;
+    background: var(--ios-fill-tertiary);
+    border: 1px solid var(--ios-separator);
+    border-radius: var(--r-md);
+    font-size: 14px;
+    text-align: center;
+    color: var(--ios-text-primary);
+}
+
+.range-sep {
+    font-size: 13px;
+    color: var(--ios-text-secondary);
+}
+
+.sort-options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.sort-opt-btn {
+    padding: 10px;
+    border-radius: var(--r-md);
+    background: var(--ios-fill-tertiary);
+    border: 1px solid transparent;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ios-text-secondary);
+    cursor: pointer;
+}
+
+.sort-opt-btn.active {
+    background: var(--ios-card-bg);
+    border-color: var(--yc-orange);
+    color: var(--yc-orange-dark);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.filter-action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.ios-btn-reset {
+    flex: 1;
+    padding: 14px;
+    background: var(--ios-fill-tertiary);
+    border: none;
+    border-radius: var(--r-md);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ios-text-primary);
+    cursor: pointer;
+}
+
+.ios-btn-apply {
+    flex: 2;
+    padding: 14px;
+    background: var(--ios-blue);
+    border: none;
+    border-radius: var(--r-md);
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+/* Action Sheet 樣式 */
+.action-sheet-title {
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--ios-text-secondary);
+    text-align: center;
+}
+
+.action-sheet-buttons {
+    display: flex;
+    flex-direction: column;
+    padding: 0 16px 24px;
+    gap: 8px;
+}
+
+.sheet-item {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    background: var(--ios-fill-tertiary);
+    border-radius: var(--r-md);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ios-blue);
+    cursor: pointer;
+}
+
+.sheet-item.cancel {
+    background: var(--ios-card-bg);
+    color: var(--ios-red);
+    font-weight: 700;
+}
+
+/* iOS Toast 提示 */
+.ios-toast {
+    position: fixed;
+    top: calc(var(--safe-top) + 20px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-30px);
+    background: rgba(0, 0, 0, 0.85);
+    color: #ffffff;
+    padding: 10px 20px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+
+.ios-toast.active {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+/* Netlify Identity Auth Styling */
+.ios-identity-box {
+    margin-bottom: 16px;
+}
+
+.btn-identity-login {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #00ad9f, #008277);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--r-md);
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 173, 159, 0.3);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-identity-login:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+}
+
+.identity-or-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 16px 0 12px;
+    color: var(--ios-text-secondary);
+    font-size: 12px;
+}
+
+.identity-or-divider::before,
+.identity-or-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 0.5px solid var(--ios-separator);
+}
+
+.identity-or-divider span {
+    padding: 0 10px;
+}
+
+.auth-footer-help {
+    margin-top: 16px;
+    font-size: 13px;
+}
+
+.auth-footer-help a {
+    color: var(--ios-blue);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.user-pill-btn {
+    padding: 4px 10px;
+    background: var(--ios-fill-tertiary);
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ios-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    max-width: 110px;
+}
+
+.user-pill-btn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+

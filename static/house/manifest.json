@@ -1,0 +1,22 @@
+{
+  "name": "永慶聯賣案件庫",
+  "short_name": "永慶案件庫",
+  "description": "永慶不動產宜蘭聯賣案件即時查詢系統",
+  "start_url": "ios.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#f59e0b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/color/192/real-estate.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://img.icons8.com/color/512/real-estate.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

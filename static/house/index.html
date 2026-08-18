@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>永慶聯賣案件查詢系統</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Netlify Identity Widget -->
+    <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-house-laptop"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>永慶聯賣案件查詢系統</h1>
+                    <p class="subtitle">每日異動自動彙整 · 銷售/成交電腦版資料庫</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="last-sync-badge">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span id="syncTime">系統資料同步中...</span>
+                </div>
+                <div class="last-sync-badge" id="userAuthBadge" style="background: #ecfdf5; color: #047857; border-color: #a7f3d0; cursor: pointer;" onclick="handleUserMenu()" title="點擊檢視使用者資訊或登出">
+                    <i class="fa-solid fa-circle-user"></i> <span id="userNameLabel">已授權使用者</span>
+                </div>
+                <a href="ios.html" class="btn" style="background: linear-gradient(135deg, #007aff, #0056b3); color: #ffffff; text-decoration: none; display: flex; align-items: center; gap: 6px; font-weight: 700; border-radius: 8px;">
+                    <i class="fa-brands fa-apple"></i> 📱 iPhone 專用版
+                </a>
+                <button class="btn btn-outline" onclick="logoutAuth()" title="重新鎖定">
+                    <i class="fa-solid fa-lock" style="color: #64748b;"></i> 登出鎖定
+                </button>
+                <button class="btn btn-secondary" onclick="reloadApp()">
+                    <i class="fa-solid fa-rotate-right"></i> 重新載入
+                </button>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" id="tabSales" onclick="switchTab('sales')">
+                <i class="fa-solid fa-house-circle-check"></i>
+                <span>銷售案件資料庫</span>
+                <span class="badge" id="salesBadge">0</span>
+            </button>
+            <button class="tab-btn" id="tabChengjiao" onclick="switchTab('chengjiao')">
+                <i class="fa-solid fa-handshake"></i>
+                <span>成交案件資料庫</span>
+                <span class="badge badge-success" id="chengjiaoBadge">0</span>
+            </button>
+        </nav>
+
+        <!-- KPI Summary Cards -->
+        <section class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon icon-blue"><i class="fa-solid fa-layer-group"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">案件總數</span>
+                    <h3 class="kpi-value" id="kpiTotalCount">0 <small>筆</small></h3>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon icon-emerald"><i class="fa-solid fa-coins"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">總開價 / 總成交金額</span>
+                    <h3 class="kpi-value" id="kpiTotalVolume">0 <small>億</small></h3>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon icon-amber"><i class="fa-solid fa-chart-line"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">平均單價</span>
+                    <h3 class="kpi-value" id="kpiAvgUnitPrice">0 <small>萬/坪</small></h3>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon icon-purple"><i class="fa-solid fa-ruler-combined"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">平均坪數</span>
+                    <h3 class="kpi-value" id="kpiAvgArea">0 <small>坪</small></h3>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search & Filter Controls -->
+        <section class="filter-panel">
+            <div class="filter-row">
+                <!-- Search Box -->
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="搜尋案件名稱、地號/門牌、經紀人、物件編號..." oninput="handleFilterChange()">
+                </div>
+
+                <!-- County Dropdown -->
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-map-location-dot"></i> 縣市</label>
+                    <select id="countySelect" onchange="handleCountyChange()">
+                        <option value="">全部縣市</option>
+                    </select>
+                </div>
+
+                <!-- Town Dropdown -->
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-city"></i> 鄉鎮市</label>
+                    <select id="townSelect" onchange="handleFilterChange()">
+                        <option value="">全部鄉鎮</option>
+                    </select>
+                </div>
+
+                <!-- Category Dropdown -->
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-tags"></i> 案件類型</label>
+                    <select id="categorySelect" onchange="handleFilterChange()">
+                        <option value="">全部類型</option>
+                        <option value="農舍">農舍</option>
+                        <option value="別墅">別墅</option>
+                        <option value="店面">店面</option>
+                        <option value="建地">建地</option>
+                        <option value="華廈">華廈</option>
+                        <option value="透天">透天</option>
+                        <option value="農地">農地</option>
+                        <option value="廠房">廠房</option>
+                        <option value="套房">套房</option>
+                        <option value="公寓">公寓</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+
+                <!-- Price Range -->
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-sack-dollar"></i> 總價(萬)</label>
+                    <div class="range-inputs">
+                        <input type="number" id="minPrice" placeholder="最低" oninput="handleFilterChange()">
+                        <span>~</span>
+                        <input type="number" id="maxPrice" placeholder="最高" oninput="handleFilterChange()">
+                    </div>
+                </div>
+
+                <!-- Area Range -->
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-vector-square"></i> 坪數(坪)</label>
+                    <div class="range-inputs">
+                        <input type="number" id="minArea" placeholder="最低" oninput="handleFilterChange()">
+                        <span>~</span>
+                        <input type="number" id="maxArea" placeholder="最高" oninput="handleFilterChange()">
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="filter-actions">
+                    <button class="btn btn-outline" onclick="resetFilters()">
+                        <i class="fa-solid fa-rotate-left"></i> 重置
+                    </button>
+                    <button class="btn btn-primary" onclick="exportFilteredCSV()">
+                        <i class="fa-solid fa-file-excel"></i> 匯出清單
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Table Container -->
+        <main class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('date')" style="width: 105px;">
+                            接案/異動日期 <i class="fa-solid fa-sort"></i>
+                        </th>
+                        <th style="width: 85px;">案件類型</th>
+                        <th style="min-width: 260px; width: 300px;">案件名稱</th>
+                        <th style="min-width: 180px;">土地地號 / 建物門牌</th>
+                        <th onclick="sortTable('area_ping')" style="width: 120px; text-align: left;">
+                            建坪 / 地坪 (坪) <i class="fa-solid fa-sort"></i>
+                        </th>
+                        <th onclick="sortTable('unit_price')" style="width: 95px; text-align: right;">
+                            單價 (萬/坪) <i class="fa-solid fa-sort"></i>
+                        </th>
+                        <th onclick="sortTable('total_price')" style="width: 115px; text-align: right;">
+                            總價 (萬元) <i class="fa-solid fa-sort"></i>
+                        </th>
+                        <th style="width: 90px;">經紀人</th>
+                        <th style="width: 135px;">所屬加盟店</th>
+                        <th style="width: 95px; text-align: center;">原始檔案</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="10" class="loading-cell">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> 載入資料庫中...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </main>
+
+        <!-- Pagination Footer -->
+        <footer class="table-footer">
+            <div class="footer-info">
+                顯示第 <span id="pageStart">0</span> 至 <span id="pageEnd">0</span> 筆，共 <span id="totalRecords">0</span> 筆案件
+            </div>
+            
+            <div class="pagination-controls">
+                <label>每頁顯示：</label>
+                <select id="pageSizeSelect" onchange="handlePageSizeChange()">
+                    <option value="20">20 筆</option>
+                    <option value="50" selected>50 筆</option>
+                    <option value="100">100 筆</option>
+                </select>
+
+                <div class="pagination-buttons">
+                    <button id="btnPrevPage" onclick="changePage(-1)" disabled>
+                        <i class="fa-solid fa-chevron-left"></i> 上一頁
+                    </button>
+                    <span id="pageIndicator" class="page-indicator">1 / 1</span>
+                    <button id="btnNextPage" onclick="changePage(1)" disabled>
+                        下一頁 <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modalTitle">案件詳細資訊</h3>
+                <button class="close-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Injected via JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">關閉</button>
+                <button class="btn btn-primary" id="btnOpenSourceFile" onclick="copyFilePath()">
+                    <i class="fa-solid fa-copy"></i> 複製原始檔案路徑
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Authentication Overlay -->
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon"><i class="fa-solid fa-user-shield"></i></div>
+                <h2>永慶聯賣案件查詢系統</h2>
+                <p>內部限定 · 特定授權同仁存取</p>
+            </div>
+            <div class="auth-body">
+                <button class="btn btn-primary btn-auth" style="background: linear-gradient(135deg, #00ad9f, #008277); width: 100%; margin-bottom: 16px; justify-content: center; font-size: 15px; font-weight: 700;" onclick="openNetlifyLogin()">
+                    <i class="fa-solid fa-envelope-circle-check"></i> 使用授權 Email 登入
+                </button>
+                <div style="display: flex; align-items: center; text-align: center; margin: 12px 0 16px; color: #94a3b8; font-size: 12px;">
+                    <div style="flex:1; border-bottom: 1px solid #e2e8f0;"></div>
+                    <span style="padding: 0 10px;">或使用管理員通行密碼</span>
+                    <div style="flex:1; border-bottom: 1px solid #e2e8f0;"></div>
+                </div>
+                <div class="auth-input-group">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" id="authPasswordInput" placeholder="請輸入通行密碼" autofocus onkeyup="if(event.key==='Enter') verifyPassword()">
+                </div>
+                <div id="authErrorMsg" class="auth-error-msg" style="display: none;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> 密碼錯誤，請重新輸入
+                </div>
+                <button class="btn btn-primary btn-auth" onclick="verifyPassword()" style="width: 100%; justify-content: center; margin-top: 10px;">
+                    <i class="fa-solid fa-unlock-keyhole"></i> 驗證通行碼
+                </button>
+                <div style="margin-top: 14px; text-align: center; font-size: 13px;">
+                    <a href="javascript:void(0)" onclick="openNetlifySignup()" style="color: #0284c7; text-decoration: none; font-weight: 600;">
+                        <i class="fa-solid fa-user-plus"></i> 申請註冊開通新帳號
+                    </a>
+                </div>
+            </div>
+            <div class="auth-footer">
+                <span><i class="fa-solid fa-shield-cat"></i> AES 與 Netlify 雙重安全加密防護中</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Embedded Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
