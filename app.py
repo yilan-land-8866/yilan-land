@@ -126,7 +126,7 @@ def set_auth_password(new_pwd):
 def check_authentication():
     """全域安全防護：未通過密碼驗證者禁止存取任何土地產權敏感資料"""
     allowed_paths = [
-        '/', '/api/login', '/api/auth_status',
+        '/', '/api/login', '/api/auth_status', '/api/ping',
         '/static/html2canvas.min.js', '/manifest.json',
         '/apple-touch-icon.png', '/static/apple-touch-icon.png',
         '/favicon.ico'
