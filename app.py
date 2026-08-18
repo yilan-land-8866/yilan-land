@@ -708,10 +708,12 @@ def search():
     conditions = []
     params = []
 
-    # 來源篩選 (Step 1)
+    # 來源篩選 (Step 1) — 若使用者在搜尋欄輸入全域關鍵字且未鎖定地段，自動跨全縣搜尋以避免遺漏
     if source != 'all':
-        conditions.append('l.source = ?')
-        params.append(source)
+        if not q or selected_town or selected_section:
+            conditions.append('l.source = ?')
+            params.append(source)
+
 
     # 鄉鎮市篩選 (Step 2) — ⚡ 效能優化：運用段號 IN 索引，免除 88 萬筆大表 JOIN 掃描
     if selected_town:
