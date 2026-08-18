@@ -855,8 +855,11 @@ def search():
                 params.extend([search_term] * 10)
 
 
+    where = ' AND '.join(conditions) if conditions else '1=1'
+
     # ⚡ 效能優化：若條件僅涉及 land_ownership 表本身（如純地址、人名、統號），免除大表 JOIN
     needs_section_join = 's.' in where
+
     if needs_section_join:
         count_sql = f'''
             SELECT COUNT(*) 
