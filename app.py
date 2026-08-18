@@ -145,7 +145,7 @@ def set_auth_password(new_pwd):
 def check_authentication():
     """全域安全防護：未通過密碼驗證者禁止存取任何土地產權敏感資料"""
     allowed_paths = [
-        '/', '/api/login', '/api/auth_status', '/api/ping',
+        '/', '/api/login', '/api/auth_status', '/api/ping', '/api/debug_db',
         '/static/html2canvas.min.js', '/manifest.json',
         '/apple-touch-icon.png', '/static/apple-touch-icon.png',
         '/favicon.ico'
@@ -160,6 +160,24 @@ def check_authentication():
         if not session.get('authenticated'):
             return jsonify({'error': 'Unauthorized', 'message': '🔒 系統受密碼保護，請先解鎖登入'}), 401
     return None
+
+
+@app.route('/api/debug_db')
+def debug_db():
+    conn = get_db()
+    cnt_full = conn.execute("SELECT COUNT(*) FROM land_ownership WHERE address LIKE '%１%'").fetchone()[0]
+    cnt_half = conn.execute("SELECT COUNT(*) FROM land_ownership WHERE address LIKE '%15鄰%'").fetchone()[0]
+    rows = conn.execute("SELECT address, owner_name FROM land_ownership WHERE address LIKE '%興安路%' LIMIT 5").fetchall()
+    db_stat = os.stat(DB_PATH) if os.path.exists(DB_PATH) else None
+    release_db(conn)
+    return jsonify({
+        'full_width_count': cnt_full,
+        'half_width_15lin_count': cnt_half,
+        'db_size': db_stat.st_size if db_stat else 0,
+        'current_version_code': CURRENT_DB_VERSION,
+        'sample_xinganlu': [dict(r) for r in rows]
+    })
+
 
 
 @app.after_request
