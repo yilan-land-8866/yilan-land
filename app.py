@@ -1085,20 +1085,53 @@ def api_auth_status():
     })
 
 
+_login_failed_attempts = {} # {ip: [timestamps]}
+
 @app.route('/api/login', methods=['POST'])
 def api_login():
-    """系統密碼驗證登入"""
+    """系統密碼驗證登入 (內建防暴力破解機制與時序攻擊防護)"""
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+    now = time.time()
+
+    # 清除超過 15 分鐘的舊記錄
+    if client_ip in _login_failed_attempts:
+        _login_failed_attempts[client_ip] = [t for t in _login_failed_attempts[client_ip] if now - t < 900]
+
+    # 檢查是否被暫時鎖定 (15 分鐘內錯誤超過 5 次)
+    attempts = _login_failed_attempts.get(client_ip, [])
+    if len(attempts) >= 5:
+        remaining = int(900 - (now - attempts[0]))
+        return jsonify({
+            'success': False,
+            'message': f'⚠️ 連續密碼錯誤次數過多，為保障資料安全，系統已暫時鎖定該連線，請於 {max(1, remaining // 60)} 分鐘後再試。'
+        }), 429
+
     data = request.get_json(silent=True) or {}
     password = str(data.get('password', '')).strip()
     remember = bool(data.get('remember', True))
     
     correct_password = get_auth_password()
-    if password == correct_password:
+    import hmac
+    if hmac.compare_digest(password, correct_password):
+        # 登入成功，清除失敗計數
+        _login_failed_attempts.pop(client_ip, None)
         session['authenticated'] = True
         session.permanent = remember
         return jsonify({'success': True, 'message': '驗證通過，歡迎使用'})
     else:
-        return jsonify({'success': False, 'message': '密碼錯誤，請重新輸入'}), 401
+        # 登入失敗，記錄時間戳並強制延遲 1 秒以防快速探測
+        if client_ip not in _login_failed_attempts:
+            _login_failed_attempts[client_ip] = []
+        _login_failed_attempts[client_ip].append(now)
+        time.sleep(1.0)
+        
+        fail_cnt = len(_login_failed_attempts[client_ip])
+        rem_chances = max(0, 5 - fail_cnt)
+        if rem_chances == 0:
+            msg = '⚠️ 密碼錯誤已達 5 次，系統已暫時鎖定 15 分鐘！'
+        else:
+            msg = f'密碼錯誤，請重新輸入 (剩餘 {rem_chances} 次嘗試機會)'
+        return jsonify({'success': False, 'message': msg}), 401
 
 
 @app.route('/api/logout', methods=['POST'])
