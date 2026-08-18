@@ -67,32 +67,51 @@ def parse_address_tokens(q):
     return [normalized]
 
 
-# Auto-unzip land_data.zip if land_data.db doesn't exist (Cloud Deployment helper with concurrency lock)
+# Auto-unzip / version sync land_data.zip for Cloud Deployment
+CURRENT_DB_VERSION = '2026_08_18_halfwidth_v2'
+_zip_p = os.path.join(_BASE_DIR, 'land_data.zip')
+_lock_p = os.path.join(_BASE_DIR, 'unzip.lock')
+_ver_p = os.path.join(_BASE_DIR, 'db_version.txt')
+
+_should_extract = False
 if not os.path.exists(DB_PATH):
-    _zip_p = os.path.join(_BASE_DIR, 'land_data.zip')
-    _lock_p = os.path.join(_BASE_DIR, 'unzip.lock')
-    if os.path.exists(_zip_p):
-        import zipfile
-        import time
-        if not os.path.exists(_lock_p):
-            try:
-                with open(_lock_p, 'w') as _lf:
-                    _lf.write(str(os.getpid()))
-                print('[*] 正在解壓縮 land_data.zip...')
-                with zipfile.ZipFile(_zip_p, 'r') as _zf:
-                    _zf.extractall(_BASE_DIR)
-                print('[*] land_data.db 解壓縮完成')
-            finally:
-                if os.path.exists(_lock_p):
-                    try:
-                        os.remove(_lock_p)
-                    except Exception:
-                        pass
-        else:
-            for _ in range(30):
-                if os.path.exists(DB_PATH) and not os.path.exists(_lock_p):
-                    break
-                time.sleep(1)
+    _should_extract = True
+else:
+    if os.path.exists(_ver_p):
+        try:
+            with open(_ver_p, 'r', encoding='utf-8') as _vf:
+                if _vf.read().strip() != CURRENT_DB_VERSION:
+                    _should_extract = True
+        except Exception:
+            _should_extract = True
+    else:
+        _should_extract = True
+
+if _should_extract and os.path.exists(_zip_p):
+    import zipfile
+    import time
+    if not os.path.exists(_lock_p):
+        try:
+            with open(_lock_p, 'w') as _lf:
+                _lf.write(str(os.getpid()))
+            print(f'[*] 正在更新解壓縮最新版本資料庫 ({CURRENT_DB_VERSION})...')
+            with zipfile.ZipFile(_zip_p, 'r') as _zf:
+                _zf.extractall(_BASE_DIR)
+            with open(_ver_p, 'w', encoding='utf-8') as _vf:
+                _vf.write(CURRENT_DB_VERSION)
+            print('[*] 最新版本 land_data.db 解壓縮與升級完成！')
+        finally:
+            if os.path.exists(_lock_p):
+                try:
+                    os.remove(_lock_p)
+                except Exception:
+                    pass
+    else:
+        for _ in range(30):
+            if os.path.exists(DB_PATH) and not os.path.exists(_lock_p):
+                break
+            time.sleep(1)
+
 
 
 
