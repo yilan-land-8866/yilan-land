@@ -2284,7 +2284,10 @@
                 const ownerId = r.owner_unified_no || r.unified_no || '—';
                 const addr = r.address || '—';
 
-                textBuf += `${idx + 1}. 【地段地號】${sec.name} ${r.formatted_land_no}\n`;
+                let landInfo = `${sec.name} ${r.formatted_land_no}`;
+                if (r.new_mapping_info) landInfo += ` (新: ${r.new_mapping_info})`;
+
+                textBuf += `${idx + 1}. 【地段地號】${landInfo}\n`;
                 textBuf += `   【所有權人】${ownerName} (${ownerId})\n`;
                 textBuf += `   【權利範圍】${fractionStr}\n`;
                 textBuf += `   【戶籍地址】${addr}\n`;
@@ -2356,9 +2359,16 @@
             } else {
                 nameStr = '地段';
             }
+
+            // 若為重測舊段或有新地號對照，後方簡明標註 (舊)
+            if (r.is_old_section || r.new_mapping_info) {
+                nameStr += ' (舊)';
+            }
+
             return {
                 code: r.section_no,
-                name: nameStr
+                name: nameStr,
+                new_info: r.new_mapping_info || ''
             };
         }
 
@@ -2388,7 +2398,10 @@
                                 <div class="field-icon">📍</div>
                                 <div class="field-content">
                                     <div class="field-label">地號標示</div>
-                                    <div class="field-value highlight"><strong>${escapeHtml(r.formatted_land_no)}</strong></div>
+                                    <div class="field-value highlight">
+                                        <strong>${escapeHtml(r.formatted_land_no)}</strong>
+                                        ${r.new_mapping_info ? `<span style="font-size:12px; color:var(--text-secondary); font-weight:normal; margin-left:6px;">(新: ${escapeHtml(r.new_mapping_info)})</span>` : ''}
+                                    </div>
                                 </div>
                             </div>
 
@@ -2450,7 +2463,10 @@
                         <td style="text-align:center;"><input type="checkbox" class="result-check" data-idx="${i}" onchange="onResultCheckChange(${i}, this.checked)" style="width:16px; height:16px; cursor:pointer;"></td>
                         <td><span class="card-source ${sourceClass(r.source)}">${escapeHtml(r.source)}</span></td>
                         <td><strong>${escapeHtml(sec.name)}</strong> <span style="color:var(--text-muted); font-size:11px;">(${escapeHtml(sec.code)})</span></td>
-                        <td class="col-nowrap"><strong>${escapeHtml(r.formatted_land_no)}</strong></td>
+                        <td class="col-nowrap">
+                            <strong>${escapeHtml(r.formatted_land_no)}</strong>
+                            ${r.new_mapping_info ? `<div style="font-size:11px; color:var(--text-muted); font-weight:normal;">(新: ${escapeHtml(r.new_mapping_info)})</div>` : ''}
+                        </td>
                         <td>${ownerDisp}</td>
                         <td class="col-nowrap" style="font-family:monospace;">${escapeHtml(r.owner_unified_no || r.unified_no || '—')}</td>
                         <td>${escapeHtml(fractionStr)}</td>

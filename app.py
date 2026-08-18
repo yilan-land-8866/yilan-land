@@ -68,7 +68,7 @@ def parse_address_tokens(q):
 
 
 # Auto-unzip / version sync land_data.zip for Cloud Deployment
-CURRENT_DB_VERSION = '2026_08_18_halfwidth_v2'
+CURRENT_DB_VERSION = '2026_08_18_parcel_mapping_v3'
 _zip_p = os.path.join(_BASE_DIR, 'land_data.zip')
 _lock_p = os.path.join(_BASE_DIR, 'unzip.lock')
 _ver_p = os.path.join(_BASE_DIR, 'db_version.txt')
@@ -563,10 +563,46 @@ def get_sections():
                 'office_name': office,
                 'old_mapping_info': r['old_mapping_info'] or '',
                 'is_old_section': r['is_old_section'] or 0,
+                'is_new_section': 0,
                 'new_section_names': r['new_section_names'] or '',
                 'source': source if source != 'all' else ('宜蘭所' if t_name in YILAN_OFFICE_TOWNS else '羅東所'),
                 'count': cnt,
                 'display_label': display_label
+            })
+
+        # ⚡ 整合重測新地段 (從 parcel_mapping 載入)
+        new_sec_rows = conn.execute('''
+            SELECT DISTINCT new_town, new_sec_name, new_sec_code, old_sec_name, COUNT(*) as cnt
+            FROM parcel_mapping
+            WHERE new_sec_name != ''
+            GROUP BY new_town, new_sec_name
+            ORDER BY new_town, new_sec_name
+        ''').fetchall()
+
+        for nr in new_sec_rows:
+            t_name = nr['new_town']
+            sec_name = nr['new_sec_name']
+            sec_no = f"NEW_{sec_name}"
+
+            if source == '宜蘭所' and t_name not in YILAN_OFFICE_TOWNS:
+                continue
+            elif source == '羅東所' and t_name not in LUODONG_OFFICE_TOWNS:
+                continue
+            if town_name and t_name != town_name:
+                continue
+
+            sections.append({
+                'section_no': sec_no,
+                'section_name': sec_name,
+                'town_name': t_name,
+                'office_name': '宜蘭所' if t_name in YILAN_OFFICE_TOWNS else '羅東所',
+                'old_mapping_info': f"對應舊段:{nr['old_sec_name']}",
+                'is_old_section': 0,
+                'is_new_section': 1,
+                'new_section_names': '',
+                'source': source if source != 'all' else ('宜蘭所' if t_name in YILAN_OFFICE_TOWNS else '羅東所'),
+                'count': nr['cnt'],
+                'display_label': f"{sec_name} (新段)"
             })
     finally:
         release_db(conn)
@@ -575,7 +611,7 @@ def get_sections():
 
 @app.route('/api/lands')
 def get_lands():
-    """根據指定地段號與來源取得所有地號 (Step 4)"""
+    """根據指定地段號與來源取得所有地號 (Step 4，支援新舊地段)"""
     section_no = request.args.get('section_no', '').strip()
     source = request.args.get('source', 'all').strip()
 
@@ -583,34 +619,47 @@ def get_lands():
         return jsonify({'lands': []})
 
     conn = get_db()
-    sec_nos = get_effective_section_nos(conn, section_no)
-    ph = ','.join(['?'] * len(sec_nos))
-    conditions = [f'section_no IN ({ph})']
-    params = list(sec_nos)
+    try:
+        # 若為重測新地段
+        if section_no.startswith('NEW_'):
+            sec_name = section_no[4:]
+            rows = conn.execute('''
+                SELECT DISTINCT new_land_raw as land_no, new_land_formatted as formatted_land_no
+                FROM parcel_mapping
+                WHERE new_sec_name = ?
+                ORDER BY new_land_raw
+            ''', (sec_name,)).fetchall()
+            lands = [{'land_no': r['land_no'], 'formatted_land_no': r['formatted_land_no']} for r in rows]
+            return jsonify({'lands': lands})
 
-    if source != 'all':
-        conditions.append('source = ?')
-        params.append(source)
+        sec_nos = get_effective_section_nos(conn, section_no)
+        ph = ','.join(['?'] * len(sec_nos))
+        conditions = [f'section_no IN ({ph})']
+        params = list(sec_nos)
 
-    where = ' AND '.join(conditions)
-    sql = f'''
-        SELECT DISTINCT land_no 
-        FROM land_ownership 
-        WHERE {where}
-        ORDER BY land_no
-    '''
-    rows = conn.execute(sql, params).fetchall()
-    release_db(conn)
+        if source != 'all':
+            conditions.append('source = ?')
+            params.append(source)
 
-    lands = []
-    for r in rows:
-        l_no = r['land_no']
-        lands.append({
-            'land_no': l_no,
-            'formatted_land_no': format_land_no(l_no)
-        })
+        where = ' AND '.join(conditions)
+        sql = f'''
+            SELECT DISTINCT land_no 
+            FROM land_ownership 
+            WHERE {where}
+            ORDER BY land_no
+        '''
+        rows = conn.execute(sql, params).fetchall()
 
-    return jsonify({'lands': lands})
+        lands = []
+        for r in rows:
+            l_no = r['land_no']
+            lands.append({
+                'land_no': l_no,
+                'formatted_land_no': format_land_no(l_no)
+            })
+        return jsonify({'lands': lands})
+    finally:
+        release_db(conn)
 
 
 @app.route('/api/owner_summary')
@@ -712,8 +761,8 @@ def search():
     """
     全域搜尋 API
     支援：
-    1. 四級連動選擇 (事務所 -> 鄉鎮 -> 地段 -> 地號)
-    2. 源頭對照舊地段地號 ➔ 新地段名與新地號
+    1. 四級連動選擇 (事務所 -> 鄉鎮 -> 地段 -> 地號，支援新舊地段)
+    2. 源頭對照新地段地號 ➔ 舊地段地號並調閱產權
     """
     q = normalize_query_text(request.args.get('q', ''))
     selected_town = request.args.get('town_name', '').strip()
@@ -736,8 +785,7 @@ def search():
             conditions.append('l.source = ?')
             params.append(source)
 
-
-    # 鄉鎮市篩選 (Step 2) — ⚡ 效能優化：運用段號 IN 索引，免除 88 萬筆大表 JOIN 掃描
+    # 鄉鎮市篩選 (Step 2)
     if selected_town:
         if not selected_section:
             town_sec_rows = conn.execute("SELECT section_no FROM section_mapping WHERE town_name = ?", (selected_town,)).fetchall()
@@ -753,15 +801,34 @@ def search():
             conditions.append('s.town_name = ?')
             params.append(selected_town)
 
-    # 精確段號篩選 (Step 3)
+    # 精確段號篩選 (Step 3 - 支援新段)
     if selected_section:
-        sec_nos = get_effective_section_nos(conn, selected_section)
-        ph = ','.join(['?'] * len(sec_nos))
-        conditions.append(f'l.section_no IN ({ph})')
-        params.extend(sec_nos)
+        if selected_section.startswith('NEW_'):
+            new_sec = selected_section[4:]
+            if selected_land:
+                pm_match = conn.execute('''
+                    SELECT old_sec_code, old_land_raw
+                    FROM parcel_mapping
+                    WHERE new_sec_name = ? AND (new_land_raw = ? OR new_land_formatted = ?)
+                    LIMIT 1
+                ''', (new_sec, selected_land, selected_land)).fetchone()
+                if pm_match:
+                    conditions.append('l.section_no = ? AND l.land_no = ?')
+                    params.extend([pm_match['old_sec_code'], pm_match['old_land_raw']])
+            else:
+                old_secs = conn.execute('SELECT DISTINCT old_sec_code FROM parcel_mapping WHERE new_sec_name = ?', (new_sec,)).fetchall()
+                if old_secs:
+                    ph = ','.join(['?'] * len(old_secs))
+                    conditions.append(f'l.section_no IN ({ph})')
+                    params.extend([r[0] for r in old_secs])
+        else:
+            sec_nos = get_effective_section_nos(conn, selected_section)
+            ph = ','.join(['?'] * len(sec_nos))
+            conditions.append(f'l.section_no IN ({ph})')
+            params.extend(sec_nos)
 
-    # 精確地號篩選 (Step 4)
-    if selected_land:
+    # 精確地號篩選 (Step 4 - 舊段常規篩選)
+    if selected_land and not (selected_section and selected_section.startswith('NEW_')):
         conditions.append('l.land_no = ?')
         params.append(selected_land)
 
@@ -769,10 +836,38 @@ def search():
     if q:
         tokens = q.split()
         addr_tokens = parse_address_tokens(q)
-        is_address_query = field in ('all', 'address') and (len(addr_tokens) >= 2 or any(k in q for k in ('路', '街', '巷', '弄', '號', '村', '里', '鄰')))
+        addr_keywords = ('路', '街', '巷', '弄', '號', '村', '里', '鄰', '樓', '室')
+        has_addr_keyword = any(k in q for k in addr_keywords)
+        is_section_land_query = bool(re.search(r'段\s*\d+', q) or re.search(r'^\d{4}\s*\d+', q))
+        is_address_query = field in ('all', 'address') and has_addr_keyword and not is_section_land_query
         
+        # ⚡ 優先檢查：是否為重測新地段 + 新地號 (例如: '補城二段 489' 或 '冬山鄉 補城二段 489地號')
+        pm_match = None
+        if len(tokens) >= 2 and field in ('all', 'section', 'land'):
+            for s_tok, l_tok in [(tokens[0], ' '.join(tokens[1:])), (tokens[1] if len(tokens) >= 3 else '', ' '.join(tokens[2:]) if len(tokens) >= 3 else '')]:
+                if not s_tok or not l_tok:
+                    continue
+                l_match = re.search(r'(\d{1,4})(?:[─\-\_之\s]+(\d{1,4}))?', l_tok)
+                if l_match:
+                    m = int(l_match.group(1))
+                    c = int(l_match.group(2)) if l_match.group(2) else 0
+                    full_8 = f"{m:04d}{c:04d}"
+                    fmt_8 = f"{m}-{c}地號" if c > 0 else f"{m}地號"
+                    pm_match = conn.execute('''
+                        SELECT old_sec_code, old_land_raw, new_sec_name, new_land_formatted
+                        FROM parcel_mapping
+                        WHERE (new_sec_name = ? OR new_sec_name LIKE ? OR new_town || new_sec_name LIKE ?)
+                          AND (new_land_raw = ? OR new_land_formatted = ?)
+                        LIMIT 1
+                    ''', (s_tok, f"%{s_tok}%", f"%{s_tok}%", full_8, fmt_8)).fetchone()
+                    if pm_match:
+                        break
+
+        if pm_match:
+            conditions.append('l.section_no = ? AND l.land_no = ?')
+            params.extend([pm_match['old_sec_code'], pm_match['old_land_raw']])
         # 情境 1: 地址多詞辨識 (如: '冬山鄉 興安路 27巷 37號' 或 '宜蘭縣廣興村15鄰冬山鄉興安路27巷37號')
-        if is_address_query and len(addr_tokens) >= 2 and field in ('all', 'address'):
+        elif is_address_query:
             addr_conds = []
             for tok in addr_tokens:
                 if tok in ('宜蘭縣', '宜蘭'):
@@ -785,10 +880,10 @@ def search():
                 conditions.append('l.address LIKE ?')
                 params.append(f'%{q}%')
 
-        # 情境 2: 輸入地段 + 地號 (如: '0021 1' 或 '羅群 1地號')
-        elif len(tokens) >= 2 and field in ('all', 'section', 'land'):
+        # 情境 2: 輸入地段 + 地號 (如: '富農段 639' 或 '0021 1' 或 '羅群 1地號')
+        elif (len(tokens) >= 2 or is_section_land_query) and field in ('all', 'section', 'land'):
             sec_part = tokens[0]
-            land_part = ' '.join(tokens[1:])
+            land_part = ' '.join(tokens[1:]) if len(tokens) > 1 else ''
             
             sec_term = f'%{sec_part}%'
             conditions.append('(l.section_no LIKE ? OR s.section_name LIKE ? OR s.town_name LIKE ? OR s.old_mapping_info LIKE ? OR s.new_section_names LIKE ?)')
@@ -802,7 +897,7 @@ def search():
                 m_prefix = f"{m:04d}%"
                 conditions.append('(l.land_no = ? OR l.land_no LIKE ? OR l.land_no LIKE ?)')
                 params.extend([full_8, m_prefix, f'%{land_part}%'])
-            else:
+            elif land_part:
                 conditions.append('l.land_no LIKE ?')
                 params.append(f'%{land_part}%')
                 
@@ -922,14 +1017,19 @@ def search():
         owner_name = row['owner_name'] or ''
         sec_no = row['section_no']
 
+        # 查驗是否有對應的重測後新地號
+        pm_row = conn.execute("SELECT new_sec_name, new_land_formatted FROM parcel_mapping WHERE old_sec_code = ? AND old_land_raw = ? LIMIT 1", (sec_no, row['land_no'])).fetchone()
+        new_mapping_info = f"{pm_row['new_sec_name']} {pm_row['new_land_formatted']}" if pm_row else ""
+
         results.append({
             'source': row['source'],
             'section_no': sec_no,
             'section_name': row['section_name'] or '',
             'town_name': row['town_name'] or '',
             'old_mapping_info': row['old_mapping_info'] or '',
-            'is_old_section': row['is_old_section'] or 0,
+            'is_old_section': row['is_old_section'] or (1 if new_mapping_info else 0),
             'new_section_names': row['new_section_names'] or '',
+            'new_mapping_info': new_mapping_info,
             'land_no': row['land_no'],
             'formatted_land_no': formatted_land,
             'reg_order': row['reg_order'],
@@ -948,6 +1048,7 @@ def search():
         })
 
     release_db(conn)
+
 
     return jsonify({
         'results': results,
