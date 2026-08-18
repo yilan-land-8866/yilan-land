@@ -1,0 +1,2556 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>宜蘭縣土地產權查詢系統</title>
+    <meta name="description" content="宜蘭縣土地產權查詢系統 — 資料來源為民國101年地政公示資料，請勿違法使用個資">
+    <!-- Apple iOS & PWA Action Bar Support -->
+    <meta name="theme-color" content="#f7f5f0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="宜蘭縣土地產權查詢系統">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/static/html2canvas.min.js"></script>
+    <style>
+        /* ========== Japanese Minimalist Wabi-Sabi Aesthetics (日式簡約質感風格) ========== */
+        :root {
+            --bg-primary: #f7f5f0;         /* 溫潤和紙底色 */
+            --bg-secondary: #ffffff;       /* 淨白卡片背景 */
+            --bg-card: #ffffff;            /* 卡片背景 */
+            --bg-card-hover: #faf7f2;      /* 卡片懸停柔和背景 */
+            --bg-input: #f0ebe1;           /* 砂色柔和輸入框 */
+            --border: #e4ddd3;             /* 典雅和風邊框 */
+            --border-focus: #3d5a45;       /* 松柏綠焦點邊框 */
+            --text-primary: #1f2923;       /* 濃墨黑 */
+            --text-secondary: #4a5a50;     /* 苔綠深灰 */
+            --text-muted: #7c8880;         /* 霧面淺灰 */
+            --accent-green: #3d5a45;       /* 松柏綠 */
+            --accent-green-hover: #2b4534; /* 深松綠 */
+            --accent-gold: #b8860b;        /* 古木金 */
+            --accent-red: #a04030;         /* 柿漆紅 */
+            --accent-blue: #2c3e50;        /* 藍染靛 */
+            --shadow-sm: 0 2px 6px rgba(31, 41, 35, 0.04);
+            --shadow-md: 0 6px 18px rgba(31, 41, 35, 0.06);
+            --shadow-lg: 0 12px 36px rgba(31, 41, 35, 0.08);
+            --shadow-glow: 0 4px 20px rgba(61, 90, 69, 0.15);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            overflow-x: hidden;
+            line-height: 1.6;
+            padding-bottom: max(28px, env(safe-area-inset-bottom));
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Ambient Background Texture */
+        .bg-mesh {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse 600px 400px at 15% 20%, rgba(61, 90, 69, 0.04) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 350px at 85% 60%, rgba(184, 134, 11, 0.04) 0%, transparent 70%);
+        }
+
+        /* Dynamic Fluid Container Math */
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 14px clamp(10px, 3vw, 20px);
+            padding-top: max(14px, env(safe-area-inset-top));
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        /* Clean Header */
+        header {
+            padding: 8px 0 14px;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .logo-row {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            max-width: 100%;
+        }
+
+        .logo-icon {
+            width: 38px; height: 38px;
+            background: var(--accent-green);
+            color: #ffffff;
+            border-radius: var(--radius-md);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            box-shadow: var(--shadow-glow);
+            flex-shrink: 0;
+        }
+
+        h1 {
+            font-family: 'Noto Serif TC', serif;
+            font-size: clamp(18px, 4.5vw, 25px);
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.02em;
+            line-height: 1.25;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                white-space: normal;
+                text-align: left;
+            }
+        }
+
+        /* Search Panel Card */
+        .search-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: clamp(14px, 3vw, 22px);
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* 4-Step Cascading Grid Layout */
+        .cascading-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+            width: 100%;
+        }
+
+        @media (max-width: 960px) {
+            .cascading-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 580px) {
+            .cascading-grid { grid-template-columns: 1fr; gap: 8px; }
+        }
+
+        .select-group-box {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 100%;
+            min-width: 0;
+            position: relative;
+        }
+
+        .select-group-label {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .select-native {
+            width: 100%;
+            min-height: 48px;
+            padding: 10px 34px 10px 14px;
+            background-color: var(--bg-input);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234a5a50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 14.5px;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+            transition: var(--transition);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        .select-native:focus {
+            border-color: var(--accent-green);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(61, 90, 69, 0.12);
+        }
+
+        .select-native:disabled {
+            background-color: #f1f5f9;
+            color: var(--text-muted);
+            cursor: not-allowed;
+            border-color: #e2e8f0;
+            opacity: 0.7;
+        }
+
+        /* Searchable Combobox Component (可搜尋即時過濾下拉選單) */
+        .combobox-box {
+            position: relative;
+            width: 100%;
+        }
+
+        .combobox-input {
+            width: 100%;
+            min-height: 48px;
+            padding: 10px 34px 10px 14px;
+            background-color: var(--bg-input);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 14.5px;
+            font-family: inherit;
+            outline: none;
+            cursor: text;
+            transition: var(--transition);
+        }
+
+        .combobox-input:focus, .combobox-box.open .combobox-input {
+            border-color: var(--accent-green);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(61, 90, 69, 0.12);
+        }
+
+        .combobox-input:disabled {
+            background-color: #f1f5f9;
+            color: var(--text-muted);
+            cursor: not-allowed;
+            border-color: #e2e8f0;
+            opacity: 0.7;
+        }
+
+        .combobox-clear-btn {
+            position: absolute;
+            right: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #cbd5e1;
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #334155;
+            cursor: pointer;
+            transition: 0.15s ease;
+            z-index: 2;
+        }
+        .combobox-clear-btn:hover { background: #94a3b8; color: #ffffff; }
+
+        .combobox-dropdown-arrow {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            font-size: 10px;
+            color: var(--text-muted);
+            transition: transform 0.2s ease;
+        }
+        .combobox-box.open .combobox-dropdown-arrow {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .custom-dropdown-panel {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            max-height: 260px;
+            overflow-y: auto;
+            z-index: 1000;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .custom-dropdown-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-primary);
+            border-bottom: 1px solid #f5efe6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.1s ease;
+        }
+
+        .custom-dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .custom-dropdown-item:hover, .custom-dropdown-item.active {
+            background: #f3ede2;
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        .custom-dropdown-item .item-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-left: 8px;
+        }
+
+        .custom-dropdown-empty {
+            padding: 14px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13.5px;
+        }
+
+        /* Land Stepper Toolbar (◀ 前一地號 / 下一地號 ▶) */
+        .land-stepper-toolbar {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 8px;
+            align-items: center;
+            background: #f0ebe1;
+            border: 1.5px solid #dcd4c5;
+            border-radius: var(--radius-md);
+            padding: 8px 12px;
+            margin-bottom: 14px;
+        }
+
+        .stepper-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #ffffff;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            transition: var(--transition);
+        }
+
+        .stepper-nav-btn:hover:not(:disabled) {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+            background: #fdfdfd;
+        }
+
+        .stepper-nav-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .stepper-center-badge {
+            text-align: center;
+            padding: 4px 10px;
+        }
+
+        .center-sub {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .center-title {
+            display: block;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
+        /* Search Main Row */
+        .search-main-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .search-input-wrap {
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            min-width: 0;
+        }
+
+        .search-input {
+            width: 100%;
+            min-height: 48px;
+            padding: 10px 40px 10px 42px;
+            background: var(--bg-input);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 15px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-green);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(61, 90, 69, 0.12);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            pointer-events: none;
+            font-size: 16px;
+            color: var(--text-muted);
+        }
+
+        .search-clear-btn {
+            position: absolute;
+            right: 12px;
+            background: #cbd5e1;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #334155;
+            cursor: pointer;
+            transition: 0.15s ease;
+        }
+        .search-clear-btn:hover { background: #94a3b8; color: #ffffff; }
+
+        .search-btn {
+            min-height: 48px;
+            padding: 0 clamp(16px, 3vw, 26px);
+            background: var(--accent-green);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .search-btn:hover {
+            background: var(--accent-green-hover);
+        }
+
+        /* Filter Pills */
+        .search-field-pills-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .field-select-label {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            font-weight: 700;
+        }
+
+        .pill-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            padding: 6px 12px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .pill.active {
+            background: var(--accent-green);
+            color: #ffffff;
+            border-color: var(--accent-green);
+        }
+
+        .pill:hover:not(.active) {
+            background: #e4ddd3;
+        }
+
+        /* Sort & View Toggle Row */
+        .filters-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-input);
+            padding: 3px;
+            border-radius: var(--radius-sm);
+        }
+
+        .view-btn {
+            padding: 6px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.15s ease;
+        }
+
+        .view-btn.active {
+            background: #ffffff;
+            color: var(--accent-green);
+            font-weight: 700;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        /* Results Display */
+        .results-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 4px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .results-count strong {
+            color: var(--accent-green);
+            font-size: 16px;
+        }
+
+        .results-time {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Action Toolbar */
+        .action-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: #ffffff;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 10px 16px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .action-tb-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.15s ease;
+        }
+
+        .action-tb-select-all {
+            background: #eef7f1;
+            border: 1.5px solid #a3c9b0;
+            color: #1e452a;
+        }
+
+        .action-tb-clear-all {
+            background: #fdf3f3;
+            border: 1.5px solid #eec4c4;
+            color: #b93838;
+        }
+
+        .copy-btn {
+            padding: 8px 18px;
+            background: var(--accent-green);
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 13.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .copy-btn:hover { background: var(--accent-green-hover); }
+
+        /* Card View */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 640px) {
+            .results-grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .card:hover {
+            border-color: #c9bfb0;
+            box-shadow: var(--shadow-md);
+            background: var(--bg-card-hover);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card-section-code {
+            font-size: 12px;
+            background: #e6dfd3;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .card-source {
+            font-size: 11.5px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+        .card-source.yilan { background: #e8f4ec; color: #2d633f; }
+        .card-source.luodong { background: #fcf0e4; color: #9c5417; }
+
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .card-field {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .field-icon {
+            font-size: 15px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .field-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .field-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .field-value {
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .field-value.highlight {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
+        .wrap-address {
+            line-height: 1.4;
+        }
+
+        .owner-clickable {
+            color: var(--accent-green);
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+        .owner-clickable:hover { color: var(--accent-green-hover); }
+
+        /* Table View */
+        .table-wrap {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow-x: auto;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            text-align: left;
+        }
+
+        .data-table th {
+            background: #f0ebe1;
+            padding: 10px 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            border-bottom: 1.5px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f1f1;
+            color: var(--text-primary);
+        }
+
+        .data-table tr:hover td {
+            background: #faf7f2;
+        }
+
+        .col-nowrap { white-space: nowrap; }
+        .col-address { min-width: 180px; }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            padding: 8px 14px;
+            background: #ffffff;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s ease;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .page-btn.active {
+            background: var(--accent-green);
+            color: #ffffff;
+            border-color: var(--accent-green);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .page-ellipsis {
+            padding: 0 4px;
+            color: var(--text-muted);
+        }
+
+        /* States */
+        .state-box {
+            text-align: center;
+            padding: 40px 20px;
+            background: #ffffff;
+            border: 1.5px dashed var(--border);
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+        }
+
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3.5px solid #e4ddd3;
+            border-top-color: var(--accent-green);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .state-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .state-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* Toast */
+        .toast-msg {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(31, 41, 35, 0.94);
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: var(--shadow-lg);
+            z-index: 10000;
+            pointer-events: none;
+            animation: toastPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes toastPop {
+            from { opacity: 0; transform: translate(-50%, 15px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        /* Owner Portfolio Banner */
+        .owner-portfolio-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, #f3ede2 0%, #e9e1d2 100%);
+            border: 1.5px solid #dcd3c1;
+            border-radius: var(--radius-md);
+            padding: 12px 18px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .portfolio-info-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .portfolio-avatar {
+            width: 38px; height: 38px;
+            background: #ffffff;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            border: 1.5px solid var(--border);
+        }
+
+        .portfolio-title-text {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .portfolio-sub-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .portfolio-badge-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .p-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .p-badge.yilan { background: #e8f4ec; color: #2d633f; }
+        .p-badge.luodong { background: #fcf0e4; color: #9c5417; }
+        .p-badge.total { background: var(--accent-green); color: #ffffff; }
+
+        .portfolio-action-btn {
+            padding: 6px 14px;
+            background: #ffffff;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: 0.15s ease;
+        }
+        .portfolio-action-btn:hover {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 18, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 900px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            animation: modalFade 0.2s ease;
+        }
+        @keyframes modalFade {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            background: #f7f5f0;
+            border-bottom: 1.5px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-body {
+            padding: 18px 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Lockscreen Overlay */
+        .auth-lock-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(247, 245, 240, 0.98);
+            backdrop-filter: blur(8px);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .auth-lock-overlay.unlocked {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .auth-card {
+            background: #ffffff;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 36px 30px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .auth-logo-icon {
+            width: 54px; height: 54px;
+            background: var(--accent-green);
+            color: #ffffff;
+            border-radius: var(--radius-md);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 28px;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .auth-title {
+            font-family: 'Noto Serif TC', serif;
+            font-size: 21px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .auth-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 22px;
+        }
+
+        .auth-input-group {
+            position: relative;
+            margin-bottom: 14px;
+        }
+
+        .auth-input {
+            width: 100%;
+            min-height: 48px;
+            padding: 10px 42px 10px 16px;
+            background: var(--bg-input);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            color: var(--text-primary);
+            outline: none;
+            transition: var(--transition);
+        }
+        .auth-input:focus {
+            border-color: var(--accent-green);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(61, 90, 69, 0.12);
+        }
+
+        .auth-toggle-pwd {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--text-muted);
+        }
+
+        .auth-btn {
+            width: 100%;
+            min-height: 48px;
+            background: var(--accent-green);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 15.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 14px rgba(61, 90, 69, 0.2);
+        }
+        .auth-btn:hover { background: var(--accent-green-hover); }
+
+        .auth-error-msg {
+            color: #b93838;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 10px;
+            min-height: 18px;
+        }
+
+        .header-disclaimer {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            background: transparent;
+            border: none;
+            display: inline-block;
+            margin-top: 4px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="bg-mesh"></div>
+
+    <!-- 🔒 Luxury Lockscreen Overlay -->
+    <div class="auth-lock-overlay" id="authLockScreen">
+        <div class="auth-card" id="authCard">
+            <div class="auth-logo-icon">🏛️</div>
+            <h2 class="auth-title">宜蘭縣土地產權查詢系統</h2>
+            <p class="auth-subtitle">🔒 系統已啟用密碼安全防護，請輸入密碼解鎖</p>
+            <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:16px; font-weight:500;">
+                ⚠️ 資料來源為民國101年地政公示資料 請勿違法使用個資
+            </div>
+
+            <div class="auth-input-group">
+                <input type="password" class="auth-input" id="authPasswordInput" 
+                       placeholder="🔑 請輸入存取密碼..." 
+                       autocomplete="current-password"
+                       onkeydown="if(event.key==='Enter'){doLogin();}">
+                <button type="button" class="auth-toggle-pwd" onclick="toggleAuthPasswordVisibility()" title="顯示/隱藏密碼">👁️</button>
+            </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; font-size:13px; color:var(--text-secondary);">
+                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                    <input type="checkbox" id="authRememberMe" checked style="width:16px; height:16px; accent-color:var(--accent-green);">
+                    記住登入狀態 (30 天內免輸入)
+                </label>
+            </div>
+
+            <button type="button" class="auth-btn" id="authLoginBtn" onclick="doLogin()">
+                解鎖進入系統 ➔
+            </button>
+
+            <div class="auth-error-msg" id="authErrorMsg"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo-row">
+                <div class="logo-icon">🏛️</div>
+                <h1>宜蘭縣土地產權查詢系統</h1>
+            </div>
+            <div>
+                <div class="header-disclaimer">
+                    ⚠️ 資料來源為民國101年地政公示資料 請勿違法使用個資
+                </div>
+            </div>
+        </header>
+
+        <!-- Search Panel -->
+        <div class="search-panel">
+            <!-- 1. 4-Step Cascading Select Grid -->
+            <div class="cascading-grid">
+                <!-- ① Office / Source -->
+                <div class="select-group-box">
+                    <span class="select-group-label">① 事務所 / 轄區來源</span>
+                    <select class="select-native" id="step1Source" onchange="onStep1SourceChange()">
+                        <option value="all">全轄區 (宜蘭所 + 羅東所)</option>
+                        <option value="宜蘭所">宜蘭地政事務所</option>
+                        <option value="羅東所">羅東地政事務所</option>
+                    </select>
+                </div>
+
+                <!-- ② Town Name -->
+                <div class="select-group-box">
+                    <span class="select-group-label">② 鄉鎮市</span>
+                    <select class="select-native" id="step2Town" onchange="onStep2TownChange()">
+                        <option value="">所有鄉鎮市 (全部)</option>
+                    </select>
+                </div>
+
+                <!-- ③ Section Select (可打字即時搜尋) -->
+                <div class="select-group-box">
+                    <span class="select-group-label">③ 地段名稱 (可打字搜尋)</span>
+                    <div class="combobox-box" id="step3SectionBox">
+                        <input type="text" class="combobox-input" id="step3SectionInput" 
+                               placeholder="所有地段 (請選擇或輸入)..." 
+                               autocomplete="off">
+                        <button type="button" class="combobox-clear-btn hidden" id="step3ClearBtn" onclick="clearSectionSelection(event)" title="清除地段選取">✕</button>
+                        <span class="combobox-dropdown-arrow">▼</span>
+                        <div class="custom-dropdown-panel hidden" id="step3SectionDropdown"></div>
+                    </div>
+                </div>
+
+                <!-- ④ Land Number Select (可打字即時搜尋) -->
+                <div class="select-group-box">
+                    <span class="select-group-label">④ 地號號碼 (可打字搜尋)</span>
+                    <div class="combobox-box" id="step4LandBox">
+                        <input type="text" class="combobox-input" id="step4LandInput" 
+                               placeholder="請先選擇地段..." 
+                               disabled autocomplete="off">
+                        <button type="button" class="combobox-clear-btn hidden" id="step4ClearBtn" onclick="clearLandSelection(event)" title="清除地號選取">✕</button>
+                        <span class="combobox-dropdown-arrow">▼</span>
+                        <div class="custom-dropdown-panel hidden" id="step4LandDropdown"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ⚡ 地號連續切換步進器 (選取地段時自動顯示) -->
+            <div class="land-stepper-toolbar" id="landStepperToolbar" style="display:none;">
+                <button type="button" class="stepper-nav-btn" id="prevLandBtn" onclick="navigateAdjacentLand(-1)">
+                    <span style="font-size:16px;">◀</span>
+                    <div style="text-align:left;">
+                        <span class="center-sub">前一地號</span>
+                        <strong style="font-size:13.5px;" id="prevLandTitle">--</strong>
+                    </div>
+                </button>
+
+                <div class="stepper-center-badge">
+                    <span class="center-sub">當前查詢地號</span>
+                    <strong class="center-title" id="currentLandTitle">所有地號 (全部)</strong>
+                </div>
+
+                <button type="button" class="stepper-nav-btn" id="nextLandBtn" onclick="navigateAdjacentLand(1)">
+                    <div style="text-align:right;">
+                        <span class="center-sub">下一地號</span>
+                        <strong style="font-size:13.5px;" id="nextLandTitle">--</strong>
+                    </div>
+                    <span style="font-size:16px;">▶</span>
+                </button>
+            </div>
+
+            <!-- 2. Global Keyword Search Row -->
+            <div class="search-main-row">
+                <div class="search-input-wrap">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" id="searchInput"
+                           placeholder="全域搜尋：輸入身分證統號、姓名、戶籍地址、地段地號..."
+                           autocomplete="off">
+                    <button type="button" class="search-clear-btn hidden" id="searchClearBtn" onclick="clearKeywordSearch()">✕</button>
+                </div>
+                <button class="search-btn" id="searchBtn" onclick="doSearch(1, true)">搜尋資料</button>
+            </div>
+
+            <!-- 3. Search Field Filter Pills -->
+            <div class="search-field-pills-row">
+                <div class="field-select-label">🎯 搜尋欄位:</div>
+                <div class="pill-group" id="fieldFilter">
+                    <button type="button" class="pill active" data-value="all">全部欄位</button>
+                    <button type="button" class="pill" data-value="owner">所有權人</button>
+                    <button type="button" class="pill" data-value="unified_no">身分證/統號</button>
+                    <button type="button" class="pill" data-value="address">戶籍地址</button>
+                    <button type="button" class="pill" data-value="section">地段</button>
+                    <button type="button" class="pill" data-value="land">地號</button>
+                </div>
+            </div>
+
+            <!-- 4. Sort & View Toggle Row -->
+            <div class="filters-row">
+                <div class="filter-group">
+                    <span class="filter-label">排序:</span>
+                    <select class="select-native" id="sortSelect" style="min-height:36px; padding:4px 28px 4px 10px; font-size:13px;" onchange="doSearch(1, false)">
+                        <option value="default">預設排序 (段號 ➔ 地號)</option>
+                        <option value="owner">所有權人姓名 (A-Z)</option>
+                        <option value="land_asc">地號小 ➔ 大</option>
+                        <option value="land_desc">地號大 ➔ 小</option>
+                        <option value="price_desc">申報地價高 ➔ 低</option>
+                        <option value="date_desc">登記日期新 ➔ 舊</option>
+                    </select>
+                </div>
+
+                <div class="view-toggle" id="viewToggle">
+                    <button class="view-btn active" data-view="card" title="卡片模式">🟃 卡片</button>
+                    <button class="view-btn" data-view="table" title="名冊模式">☰ 名冊</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Owner Portfolio Banner Container -->
+        <div id="ownerBannerWrap"></div>
+
+        <!-- Search Results Info & Copy Action Toolbar -->
+        <div class="results-info hidden" id="resultsInfo">
+            <span class="results-count" id="resultsCount"></span>
+            <span class="results-time" id="resultsTime"></span>
+        </div>
+
+        <!-- 📋 一鍵選取/取消與一鍵複製工具列 -->
+        <div class="action-toolbar hidden" id="actionToolbar">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="action-tb-btn action-tb-select-all" onclick="selectAllResults(true)">
+                    ☑️ 一鍵全部選取
+                </button>
+                <button type="button" class="action-tb-btn action-tb-clear-all" onclick="selectAllResults(false)">
+                    ✖️ 全部取消選取
+                </button>
+                <span style="font-size:13px; color:var(--text-muted); margin-left:4px;" id="selectedCountText">(請勾選資料以複製)</span>
+            </div>
+            <button type="button" class="copy-btn" id="copyBtn" onclick="copySelectedResults()">
+                📋 複製選取的資料
+            </button>
+        </div>
+
+        <!-- Toast Notification Container -->
+        <div id="toastMsg" class="toast-msg hidden">📋 已成功複製資料到剪貼簿！</div>
+
+        <!-- Results Display Views -->
+        <div class="results-grid" id="cardView"></div>
+        <div class="table-wrap hidden" id="tableView">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:36px; text-align:center;"><input type="checkbox" id="tableMasterCheck" onchange="toggleSelectAllResults(this)" style="width:16px; height:16px; cursor:pointer;"></th>
+                        <th>事務所</th>
+                        <th>轄區 / 地段名稱</th>
+                        <th>地號</th>
+                        <th>登記名義人</th>
+                        <th>身分證/統號</th>
+                        <th>權利範圍</th>
+                        <th>申報地價</th>
+                        <th class="col-address">戶籍地址</th>
+                        <th>登記日期</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination hidden" id="pagination"></div>
+
+        <!-- Loading & Empty States -->
+        <div class="state-box hidden" id="stateLoading">
+            <div class="spinner"></div>
+            <div class="state-title">資料調閱中...</div>
+            <div class="state-desc">正在為您高速比對 888,811 筆土地所有權登記資料庫</div>
+        </div>
+
+        <div class="state-box hidden" id="stateEmpty">
+            <div style="font-size:28px; margin-bottom:8px;">🍃</div>
+            <div class="state-title">未找到符合條件的產權紀錄</div>
+            <div class="state-desc">建議您縮短關鍵字、切換搜尋欄位，或重新確認鄉鎮市與地段標示。</div>
+        </div>
+    </div>
+
+    <!-- Owner Portfolio Modal -->
+    <div class="modal-overlay hidden" id="ownerModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div>
+                    <h2 id="modalOwnerName" style="font-family:'Noto Serif TC',serif; font-size: 19px; color: var(--text-primary);">—</h2>
+                    <p style="font-size: 13px; color: var(--text-secondary);" id="modalOwnerSub">—</p>
+                </div>
+                <button type="button" onclick="closeOwnerModal()" style="background: transparent; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; padding: 0 8px;">✕</button>
+            </div>
+            <div class="modal-body" id="modalOwnerBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // ========== Global State ==========
+        let currentSource = 'all';
+        let selectedTownName = '';
+        let selectedSectionNo = '';
+        let selectedLandNo = '';
+        let currentField = 'all';
+        let currentView = 'card';
+        let currentQuery = '';
+        let currentPage = 1;
+
+        let allMasterSections = [];
+        let filteredSections = [];
+        let allLands = [];
+
+        // ========== DOM Ready Initialization ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            setupSearchableComboboxes();
+            checkAuthStatus();
+        });
+
+        // ========== Auth & Unlock ==========
+        async function checkAuthStatus() {
+            try {
+                const res = await fetch('/api/auth_status');
+                const data = await res.json();
+                if (data.authenticated) {
+                    unlockScreen();
+                } else {
+                    lockScreen();
+                }
+            } catch (e) {
+                console.error('Auth status error:', e);
+                lockScreen();
+            }
+        }
+
+        function unlockScreen() {
+            const lockScreen = document.getElementById('authLockScreen');
+            if (lockScreen) lockScreen.classList.add('unlocked');
+            loadTowns();
+            loadSections();
+        }
+
+        function lockScreen() {
+            const lockScreen = document.getElementById('authLockScreen');
+            if (lockScreen) {
+                lockScreen.classList.remove('unlocked');
+                const pwdIn = document.getElementById('authPasswordInput');
+                if (pwdIn) {
+                    pwdIn.value = '';
+                    pwdIn.focus();
+                }
+            }
+        }
+
+        async function doLogin() {
+            const pwdInput = document.getElementById('authPasswordInput');
+            const rememberCheck = document.getElementById('authRememberMe');
+            const errorMsg = document.getElementById('authErrorMsg');
+            const loginBtn = document.getElementById('authLoginBtn');
+
+            const password = pwdInput.value.trim();
+            if (!password) {
+                errorMsg.textContent = '⚠️ 請輸入存取密碼';
+                pwdInput.focus();
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = '驗證中...';
+            errorMsg.textContent = '';
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        password: password,
+                        remember: rememberCheck ? rememberCheck.checked : true
+                    })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    showToast('✅ 驗證成功，歡迎使用');
+                    unlockScreen();
+                } else {
+                    errorMsg.textContent = data.message || '密碼錯誤，請重新輸入';
+                    pwdInput.value = '';
+                    pwdInput.focus();
+                }
+            } catch (e) {
+                errorMsg.textContent = '連線失敗，請檢查網路連線';
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = '解鎖進入系統 ➔';
+            }
+        }
+
+        function toggleAuthPasswordVisibility() {
+            const inpt = document.getElementById('authPasswordInput');
+            if (inpt) {
+                inpt.type = inpt.type === 'password' ? 'text' : 'password';
+            }
+        }
+
+        // ========== Event Listeners ==========
+        function setupEventListeners() {
+            let _searchDebounceTimer = null;
+            const searchInput = document.getElementById('searchInput');
+
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    clearTimeout(_searchDebounceTimer);
+                    doSearch(1, true);
+                }
+            });
+
+            searchInput.addEventListener('input', () => {
+                const val = searchInput.value.trim();
+                const clearBtn = document.getElementById('searchClearBtn');
+                if (clearBtn) {
+                    if (val) clearBtn.classList.remove('hidden');
+                    else clearBtn.classList.add('hidden');
+                }
+                clearTimeout(_searchDebounceTimer);
+                _searchDebounceTimer = setTimeout(() => {
+                    if (val.length >= 2 || val.length === 0) doSearch(1, true);
+                }, 350);
+            });
+
+            // Filter pills
+            document.querySelectorAll('#fieldFilter .pill').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#fieldFilter .pill').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentField = btn.dataset.value;
+                    
+                    const placeholders = {
+                        'all': '全域搜尋：輸入身分證統號、姓名、戶籍地址、地段地號...',
+                        'unified_no': '請輸入身分證字號或統一編號 (例如: G100612963)...',
+                        'owner': '請輸入所有權人姓名 (例如: 游禮信, 黃素梅)...',
+                        'address': '請輸入戶籍地址關鍵字 (例如: 大坡路, 南安路, 永安里)...',
+                        'section': '請輸入地段名稱 (例如: 公園段, 中山段)...',
+                        'land': '請輸入地號 (例如: 1 或 225-1)...'
+                    };
+                    if (searchInput && placeholders[currentField]) {
+                        searchInput.placeholder = placeholders[currentField];
+                        searchInput.focus();
+                    }
+                    doSearch(1, true);
+                });
+            });
+
+            // View toggle
+            document.querySelectorAll('#viewToggle .view-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#viewToggle .view-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentView = btn.dataset.view;
+                    updateView();
+                });
+            });
+        }
+
+        function clearKeywordSearch() {
+            const sInput = document.getElementById('searchInput');
+            if (sInput) sInput.value = '';
+            const clearBtn = document.getElementById('searchClearBtn');
+            if (clearBtn) clearBtn.classList.add('hidden');
+            doSearch(1, true);
+        }
+
+        // ========== Setup Searchable Comboboxes ==========
+        function setupSearchableComboboxes() {
+            const secBox = document.getElementById('step3SectionBox');
+            const secIn = document.getElementById('step3SectionInput');
+            const secDrop = document.getElementById('step3SectionDropdown');
+
+            const landBox = document.getElementById('step4LandBox');
+            const landIn = document.getElementById('step4LandInput');
+            const landDrop = document.getElementById('step4LandDropdown');
+
+            // Section input handlers
+            secIn.addEventListener('focus', () => {
+                openSectionDropdown('', true);
+                secIn.select();
+            });
+            secIn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openSectionDropdown('', true);
+                secIn.select();
+            });
+            secIn.addEventListener('input', () => {
+                // 只有當使用者真正打字或刪除時，才執行即時過濾
+                openSectionDropdown(secIn.value.trim(), false);
+            });
+            secIn.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const firstItem = secDrop.querySelector('.custom-dropdown-item');
+                    if (firstItem) firstItem.click();
+                }
+            });
+
+            // Land input handlers
+            landIn.addEventListener('focus', () => {
+                if (landIn.disabled) return;
+                openLandDropdown('', true);
+                landIn.select();
+            });
+            landIn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (landIn.disabled) return;
+                openLandDropdown('', true);
+                landIn.select();
+            });
+            landIn.addEventListener('input', () => {
+                // 只有當使用者真正打字或刪除時，才執行即時過濾
+                openLandDropdown(landIn.value.trim(), false);
+            });
+            landIn.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const firstItem = landDrop.querySelector('.custom-dropdown-item');
+                    if (firstItem) firstItem.click();
+                }
+            });
+
+            // Click outside to close dropdowns
+            document.addEventListener('click', (e) => {
+                if (secBox && !secBox.contains(e.target)) closeSectionDropdown();
+                if (landBox && !landBox.contains(e.target)) closeLandDropdown();
+            });
+        }
+
+        function openSectionDropdown(keyword = '', autoScroll = true) {
+            const secBox = document.getElementById('step3SectionBox');
+            const secDrop = document.getElementById('step3SectionDropdown');
+            const secIn = document.getElementById('step3SectionInput');
+            const clearBtn = document.getElementById('step3ClearBtn');
+
+            if (clearBtn) {
+                if (selectedSectionNo || secIn.value.trim()) clearBtn.classList.remove('hidden');
+                else clearBtn.classList.add('hidden');
+            }
+
+            secBox.classList.add('open');
+            secDrop.classList.remove('hidden');
+
+            const kw = keyword.toLowerCase().trim();
+            const matched = filteredSections.filter(s => {
+                if (!kw) return true;
+                return s.section_name.toLowerCase().includes(kw) ||
+                       s.town_name.toLowerCase().includes(kw) ||
+                       s.section_no.includes(kw);
+            });
+
+            let html = '';
+            html += `
+                <div class="custom-dropdown-item ${!selectedSectionNo ? 'active' : ''}" data-sec-no="" onclick="onSelectSectionItem('', '所有地段 (全部)')">
+                    <span>所有地段 (全部)</span>
+                    <span class="item-sub">${filteredSections.length} 個地段</span>
+                </div>
+            `;
+
+            if (matched.length === 0) {
+                html += '<div class="custom-dropdown-empty">無符合的地段名稱</div>';
+            } else {
+                matched.forEach(s => {
+                    const countTxt = s.count !== undefined ? (s.count > 0 ? `${Number(s.count).toLocaleString()} 筆` : '0 筆') : '';
+                    const label = selectedTownName ? s.section_name : `${s.town_name} ${s.section_name}`;
+                    const isSelected = selectedSectionNo === s.section_no;
+                    html += `
+                        <div class="custom-dropdown-item ${isSelected ? 'active' : ''}" data-sec-no="${escapeHtml(s.section_no)}" onclick="onSelectSectionItem('${escapeHtml(s.section_no)}', '${escapeHtml(label)}')">
+                            <span>${escapeHtml(label)}</span>
+                            <span class="item-sub">${escapeHtml(countTxt)}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            secDrop.innerHTML = html;
+
+            if (autoScroll) {
+                requestAnimationFrame(() => {
+                    const activeEl = secDrop.querySelector('.custom-dropdown-item.active');
+                    if (activeEl) {
+                        activeEl.scrollIntoView({ block: 'center', behavior: 'auto' });
+                    }
+                });
+            }
+        }
+
+        function closeSectionDropdown() {
+            const secBox = document.getElementById('step3SectionBox');
+            const secDrop = document.getElementById('step3SectionDropdown');
+            const secIn = document.getElementById('step3SectionInput');
+            if (secBox) secBox.classList.remove('open');
+            if (secDrop) secDrop.classList.add('hidden');
+
+            if (selectedSectionNo) {
+                const cur = allMasterSections.find(s => s.section_no === selectedSectionNo);
+                if (cur) {
+                    secIn.value = selectedTownName ? cur.section_name : `${cur.town_name} ${cur.section_name}`;
+                }
+            } else {
+                secIn.value = '';
+                secIn.placeholder = selectedTownName ? `請選擇或輸入 ${selectedTownName} 地段...` : '所有地段 (請選擇或輸入)...';
+            }
+        }
+
+        function clearSectionSelection(e) {
+            if (e) e.stopPropagation();
+            onSelectSectionItem('', '');
+        }
+
+        async function onSelectSectionItem(secNo, label) {
+            selectedSectionNo = secNo;
+            const secIn = document.getElementById('step3SectionInput');
+            const clearBtn = document.getElementById('step3ClearBtn');
+            const landIn = document.getElementById('step4LandInput');
+            const landClearBtn = document.getElementById('step4ClearBtn');
+
+            if (secNo) {
+                secIn.value = label;
+                if (clearBtn) clearBtn.classList.remove('hidden');
+            } else {
+                secIn.value = '';
+                secIn.placeholder = selectedTownName ? `請選擇或輸入 ${selectedTownName} 地段...` : '所有地段 (請選擇或輸入)...';
+                if (clearBtn) clearBtn.classList.add('hidden');
+            }
+
+            closeSectionDropdown();
+
+            // Reset land selection
+            selectedLandNo = '';
+            allLands = [];
+            landIn.value = '';
+            if (landClearBtn) landClearBtn.classList.add('hidden');
+
+            if (!secNo) {
+                landIn.disabled = true;
+                landIn.placeholder = '請先選擇地段...';
+                updateLandStepper();
+                // ⚠️ 不跳動畫面 (shouldScroll = false)
+                doSearch(1, false);
+                return;
+            }
+
+            landIn.disabled = true;
+            landIn.placeholder = '⏳ 載入地號中...';
+
+            try {
+                const res = await fetch(`/api/lands?section_no=${encodeURIComponent(selectedSectionNo)}&source=${encodeURIComponent(currentSource)}`);
+                const data = await res.json();
+                allLands = data.lands || [];
+
+                if (allLands.length === 0) {
+                    landIn.disabled = true;
+                    landIn.placeholder = '該地段無地號登記資料';
+                } else {
+                    landIn.disabled = false;
+                    landIn.placeholder = `請選擇或輸入地號 (共 ${allLands.length} 個)...`;
+                }
+
+                updateLandStepper();
+            } catch (e) {
+                console.error('Failed to load lands:', e);
+                landIn.placeholder = '載入地號失敗';
+            }
+
+            // ⚠️ 關鍵：選取完地段時不要跳動畫面 (shouldScroll = false)，讓使用者在上方繼續挑選地號！
+            doSearch(1, false);
+        }
+
+        // ========== Land Combobox Logic ==========
+        function openLandDropdown(keyword = '', autoScroll = true) {
+            const landBox = document.getElementById('step4LandBox');
+            const landDrop = document.getElementById('step4LandDropdown');
+            const landIn = document.getElementById('step4LandInput');
+            const clearBtn = document.getElementById('step4ClearBtn');
+
+            if (landIn.disabled || !selectedSectionNo) return;
+
+            if (clearBtn) {
+                if (selectedLandNo || landIn.value.trim()) clearBtn.classList.remove('hidden');
+                else clearBtn.classList.add('hidden');
+            }
+
+            landBox.classList.add('open');
+            landDrop.classList.remove('hidden');
+
+            const kw = keyword.toLowerCase().replace(/地號/g, '').trim();
+            const matched = allLands.filter(l => {
+                if (!kw) return true;
+                return l.formatted_land_no.replace(/地號/g, '').includes(kw) ||
+                       l.land_no.includes(kw);
+            });
+
+            let html = '';
+            html += `
+                <div class="custom-dropdown-item ${!selectedLandNo ? 'active' : ''}" data-land-no="" onclick="onSelectLandItem('', '所有地號 (全部)')">
+                    <span>所有地號 (全部)</span>
+                    <span class="item-sub">${allLands.length} 個地號</span>
+                </div>
+            `;
+
+            if (matched.length === 0) {
+                html += '<div class="custom-dropdown-empty">無符合的地號</div>';
+            } else {
+                matched.forEach(l => {
+                    const countTxt = l.count ? `${l.count} 筆登記` : '';
+                    const isSelected = selectedLandNo === l.land_no;
+                    html += `
+                        <div class="custom-dropdown-item ${isSelected ? 'active' : ''}" data-land-no="${escapeHtml(l.land_no)}" onclick="onSelectLandItem('${escapeHtml(l.land_no)}', '${escapeHtml(l.formatted_land_no)}')">
+                            <span>${escapeHtml(l.formatted_land_no)}</span>
+                            <span class="item-sub">${escapeHtml(countTxt)}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            landDrop.innerHTML = html;
+
+            if (autoScroll) {
+                requestAnimationFrame(() => {
+                    const activeEl = landDrop.querySelector('.custom-dropdown-item.active');
+                    if (activeEl) {
+                        activeEl.scrollIntoView({ block: 'center', behavior: 'auto' });
+                    }
+                });
+            }
+        }
+
+        function closeLandDropdown() {
+            const landBox = document.getElementById('step4LandBox');
+            const landDrop = document.getElementById('step4LandDropdown');
+            const landIn = document.getElementById('step4LandInput');
+            if (landBox) landBox.classList.remove('open');
+            if (landDrop) landDrop.classList.add('hidden');
+
+            if (selectedLandNo) {
+                const cur = allLands.find(l => l.land_no === selectedLandNo);
+                if (cur) landIn.value = cur.formatted_land_no;
+            } else {
+                landIn.value = '';
+                if (selectedSectionNo && allLands.length > 0) {
+                    landIn.placeholder = `所有地號 (共 ${allLands.length} 個，點擊或輸入)...`;
+                }
+            }
+        }
+
+        function clearLandSelection(e) {
+            if (e) e.stopPropagation();
+            onSelectLandItem('', '');
+        }
+
+        function onSelectLandItem(landNo, label) {
+            selectedLandNo = landNo;
+            const landIn = document.getElementById('step4LandInput');
+            const clearBtn = document.getElementById('step4ClearBtn');
+
+            if (landNo) {
+                landIn.value = label;
+                if (clearBtn) clearBtn.classList.remove('hidden');
+            } else {
+                landIn.value = '';
+                if (selectedSectionNo && allLands.length > 0) {
+                    landIn.placeholder = `所有地號 (共 ${allLands.length} 個，點擊或輸入)...`;
+                }
+                if (clearBtn) clearBtn.classList.add('hidden');
+            }
+
+            closeLandDropdown();
+            updateLandStepper();
+
+            // 選完地號 ➔ 執行搜尋並平滑滾動至結果 (shouldScroll = true)
+            doSearch(1, true);
+        }
+
+        // ========== Step 1 & 2 Handlers ==========
+        async function onStep1SourceChange() {
+            currentSource = document.getElementById('step1Source').value;
+            selectedTownName = '';
+            selectedSectionNo = '';
+            selectedLandNo = '';
+            allLands = [];
+
+            await loadTowns();
+            updateFilteredSections();
+            resetSectionAndLandInputs();
+            updateLandStepper();
+
+            doSearch(1, false);
+        }
+
+        function onStep2TownChange() {
+            selectedTownName = document.getElementById('step2Town').value;
+            selectedSectionNo = '';
+            selectedLandNo = '';
+            allLands = [];
+
+            updateFilteredSections();
+            resetSectionAndLandInputs();
+            updateLandStepper();
+
+            doSearch(1, false);
+        }
+
+        function resetSectionAndLandInputs() {
+            const secIn = document.getElementById('step3SectionInput');
+            const secClearBtn = document.getElementById('step3ClearBtn');
+            const landIn = document.getElementById('step4LandInput');
+            const landClearBtn = document.getElementById('step4ClearBtn');
+
+            if (secIn) {
+                secIn.value = '';
+                secIn.placeholder = selectedTownName ? `請選擇或輸入 ${selectedTownName} 地段...` : '所有地段 (請選擇或輸入)...';
+            }
+            if (secClearBtn) secClearBtn.classList.add('hidden');
+
+            if (landIn) {
+                landIn.value = '';
+                landIn.disabled = true;
+                landIn.placeholder = '請先選擇地段...';
+            }
+            if (landClearBtn) landClearBtn.classList.add('hidden');
+        }
+
+        // ========== Land Stepper (◀ 前一地號 / 下一地號 ▶) ==========
+        function updateLandStepper() {
+            const stepper = document.getElementById('landStepperToolbar');
+            const prevBtn = document.getElementById('prevLandBtn');
+            const nextBtn = document.getElementById('nextLandBtn');
+            const prevTitle = document.getElementById('prevLandTitle');
+            const nextTitle = document.getElementById('nextLandTitle');
+            const currentTitle = document.getElementById('currentLandTitle');
+
+            if (!selectedSectionNo || allLands.length === 0) {
+                stepper.style.display = 'none';
+                return;
+            }
+
+            stepper.style.display = 'grid';
+
+            const currentIndex = allLands.findIndex(l => l.land_no === selectedLandNo);
+
+            if (currentIndex === -1) {
+                currentTitle.textContent = `所有地號 (${allLands.length} 個地號)`;
+                prevBtn.disabled = true;
+                prevTitle.textContent = '--';
+                if (allLands.length > 0) {
+                    nextBtn.disabled = false;
+                    nextTitle.textContent = allLands[0].formatted_land_no;
+                } else {
+                    nextBtn.disabled = true;
+                    nextTitle.textContent = '--';
+                }
+            } else {
+                currentTitle.textContent = allLands[currentIndex].formatted_land_no;
+
+                if (currentIndex > 0) {
+                    prevBtn.disabled = false;
+                    prevTitle.textContent = allLands[currentIndex - 1].formatted_land_no;
+                } else {
+                    prevBtn.disabled = false;
+                    prevTitle.textContent = '所有地號 (全部)';
+                }
+
+                if (currentIndex < allLands.length - 1) {
+                    nextBtn.disabled = false;
+                    nextTitle.textContent = allLands[currentIndex + 1].formatted_land_no;
+                } else {
+                    nextBtn.disabled = true;
+                    nextTitle.textContent = '已至末筆';
+                }
+            }
+        }
+
+        function navigateAdjacentLand(delta) {
+            if (!selectedSectionNo || allLands.length === 0) return;
+
+            const currentIndex = allLands.findIndex(l => l.land_no === selectedLandNo);
+            let targetIndex = currentIndex + delta;
+
+            if (targetIndex < -1) targetIndex = -1;
+            if (targetIndex >= allLands.length) targetIndex = allLands.length - 1;
+
+            const landIn = document.getElementById('step4LandInput');
+            const clearBtn = document.getElementById('step4ClearBtn');
+
+            if (targetIndex === -1) {
+                selectedLandNo = '';
+                if (landIn) landIn.value = '';
+                if (clearBtn) clearBtn.classList.add('hidden');
+            } else {
+                selectedLandNo = allLands[targetIndex].land_no;
+                if (landIn) landIn.value = allLands[targetIndex].formatted_land_no;
+                if (clearBtn) clearBtn.classList.remove('hidden');
+            }
+
+            updateLandStepper();
+            doSearch(1, true);
+        }
+
+        // ========== Load Towns & Sections ==========
+        async function loadTowns() {
+            try {
+                // 1. Instant load from localStorage
+                const cachedTowns = localStorage.getItem('yilan_towns_cache_v1');
+                if (cachedTowns) {
+                    const towns = JSON.parse(cachedTowns);
+                    renderTownSelect(towns);
+                }
+
+                const res = await fetch(`/api/towns?source=${encodeURIComponent(currentSource)}`);
+                const data = await res.json();
+                const towns = data.towns || [];
+                if (towns.length > 0) {
+                    localStorage.setItem('yilan_towns_cache_v1', JSON.stringify(towns));
+                    renderTownSelect(towns);
+                }
+            } catch (e) {
+                console.error('Failed to load towns:', e);
+            }
+        }
+
+        function renderTownSelect(towns) {
+            const townSelect = document.getElementById('step2Town');
+            if (!townSelect) return;
+            let tHtml = '<option value="">所有鄉鎮市 (全部)</option>';
+            tHtml += towns.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+            townSelect.innerHTML = tHtml;
+            townSelect.value = selectedTownName;
+        }
+
+        async function loadSections() {
+            // 1. ⚡ 秒開機制：從瀏覽器 LocalStorage 瞬間載入 602 個地段，完全不需等待伺服器甦醒！
+            if (allMasterSections.length === 0) {
+                try {
+                    const cached = localStorage.getItem('yilan_master_sections_v1');
+                    if (cached) {
+                        allMasterSections = JSON.parse(cached);
+                        updateFilteredSections();
+                    }
+                } catch (e) {}
+            }
+
+            try {
+                if (allMasterSections.length === 0) {
+                    const secIn = document.getElementById('step3SectionInput');
+                    if (secIn) secIn.placeholder = '⏳ 連線伺服器載入地段中...';
+                }
+
+                const res = await fetch('/api/sections?source=all');
+                const data = await res.json();
+                if (data.sections && data.sections.length > 0) {
+                    allMasterSections = data.sections;
+                    try {
+                        localStorage.setItem('yilan_master_sections_v1', JSON.stringify(data.sections));
+                    } catch (e) {}
+                    updateFilteredSections();
+                    const secIn = document.getElementById('step3SectionInput');
+                    if (secIn && !secIn.value) {
+                        secIn.placeholder = selectedTownName ? `請選擇或輸入 ${selectedTownName} 地段...` : '所有地段 (請選擇或輸入)...';
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load sections:', e);
+            }
+        }
+
+        function updateFilteredSections() {
+            const yilanTowns = ['宜蘭市', '礁溪鄉', '員山鄉', '壯圍鄉', '頭城鎮'];
+            const luodongTowns = ['羅東鎮', '五結鄉', '冬山鄉', '三星鄉', '蘇澳鎮', '大同鄉', '南澳鄉'];
+
+            filteredSections = allMasterSections.filter(s => {
+                if (currentSource === '宜蘭所' && !yilanTowns.includes(s.town_name)) return false;
+                if (currentSource === '羅東所' && !luodongTowns.includes(s.town_name)) return false;
+                if (selectedTownName && s.town_name !== selectedTownName) return false;
+                return true;
+            });
+        }
+
+        // ========== Search Execution ==========
+        let _activeSearchReqId = 0;
+
+        async function doSearch(page = 1, shouldScroll = true) {
+            const searchIn = document.getElementById('searchInput');
+            const query = searchIn ? searchIn.value.trim() : '';
+            const clearBtn = document.getElementById('searchClearBtn');
+            if (clearBtn) {
+                if (query) clearBtn.classList.remove('hidden');
+                else clearBtn.classList.add('hidden');
+            }
+
+            const qTown = selectedTownName;
+            const qSec = selectedSectionNo;
+            const qLand = selectedLandNo;
+
+            if (!query && !qTown && !qSec && !qLand && currentSource === 'all') {
+                return;
+            }
+
+            currentQuery = query;
+            currentPage = page;
+
+            showState('loading');
+            const startTime = performance.now();
+            const currentReqId = ++_activeSearchReqId;
+
+            try {
+                const sortSelect = document.getElementById('sortSelect');
+                const params = new URLSearchParams({
+                    q: query,
+                    town_name: qTown,
+                    section_no: qSec,
+                    land_no: qLand,
+                    source: currentSource,
+                    field: currentField,
+                    page: page,
+                    sort_by: sortSelect ? sortSelect.value : 'default',
+                });
+
+                const res = await fetch(`/api/search?${params}`);
+                if (currentReqId !== _activeSearchReqId) return;
+
+                const data = await res.json();
+                const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+
+                if (data.total === 0) {
+                    showState('empty');
+                    return;
+                }
+
+                renderResults(data, elapsed);
+
+                if (shouldScroll) {
+                    setTimeout(() => {
+                        const resultsEl = document.getElementById('resultsInfo') || document.getElementById('cardView');
+                        if (resultsEl) {
+                            resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 100);
+                }
+            } catch (e) {
+                if (currentReqId !== _activeSearchReqId) return;
+                console.error('Search failed:', e);
+                showState('empty');
+            }
+        }
+
+        // ========== State Management ==========
+        function showState(state) {
+            const ids = ['stateLoading', 'stateEmpty', 'resultsInfo', 'cardView', 'tableView', 'pagination'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+
+            if (state === 'loading') {
+                const el = document.getElementById('stateLoading');
+                if (el) el.classList.remove('hidden');
+            } else if (state === 'empty') {
+                const el = document.getElementById('stateEmpty');
+                if (el) el.classList.remove('hidden');
+            }
+        }
+
+        // ========== Render Results ==========
+        let currentSearchResults = [];
+
+        function renderResults(data, elapsed) {
+            showState(null);
+            currentSearchResults = data.results || [];
+
+            const actionTb = document.getElementById('actionToolbar');
+            if (actionTb) {
+                if (currentSearchResults.length > 0) actionTb.classList.remove('hidden');
+                else actionTb.classList.add('hidden');
+            }
+
+            const tableMaster = document.getElementById('tableMasterCheck');
+            if (tableMaster) tableMaster.checked = false;
+
+            updateCopyBtnState();
+
+            const bannerContainer = document.getElementById('ownerBannerWrap');
+            if (data.owner_stats) {
+                const s = data.owner_stats;
+                bannerContainer.innerHTML = `
+                    <div class="owner-portfolio-banner">
+                        <div class="portfolio-info-left">
+                            <div class="portfolio-avatar">👤</div>
+                            <div>
+                                <div class="portfolio-title-text">${escapeHtml(s.name)} — 名下不動產總覽</div>
+                                <div class="portfolio-sub-text">跨轄區不動產筆數統計 (宜蘭所 + 羅東所)</div>
+                            </div>
+                        </div>
+                        <div class="portfolio-badge-group">
+                            <span class="p-badge yilan">宜蘭所: ${s.yilan} 筆</span>
+                            <span class="p-badge luodong">羅東所: ${s.luodong} 筆</span>
+                            <span class="p-badge total">跨所總計: ${s.total} 筆</span>
+                            <button class="portfolio-action-btn" onclick="openOwnerPortfolio('${escapeHtml(s.name)}')">查看歸戶名冊 📋</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                bannerContainer.innerHTML = '';
+            }
+
+            const info = document.getElementById('resultsInfo');
+            info.classList.remove('hidden');
+            document.getElementById('resultsCount').innerHTML =
+                `找到 <strong>${data.total.toLocaleString()}</strong> 筆資料，第 ${data.page} / ${data.pages} 頁`;
+            document.getElementById('resultsTime').textContent = `${elapsed} 秒`;
+
+            renderCards(data.results);
+            renderTable(data.results);
+            updateView();
+            renderPagination(data.page, data.pages);
+        }
+
+        function getSelectedIndices() {
+            const selectedSet = new Set();
+            document.querySelectorAll('.result-check:checked').forEach(c => {
+                const idx = parseInt(c.dataset.idx, 10);
+                if (!isNaN(idx) && idx >= 0 && idx < currentSearchResults.length) {
+                    selectedSet.add(idx);
+                }
+            });
+            const arr = Array.from(selectedSet);
+            arr.sort((a, b) => a - b);
+            return arr;
+        }
+
+        function onResultCheckChange(idx, checked) {
+            document.querySelectorAll(`.result-check[data-idx="${idx}"]`).forEach(c => {
+                c.checked = checked;
+            });
+            updateCopyBtnState();
+        }
+
+        function selectAllResults(checked) {
+            document.querySelectorAll('.result-check').forEach(c => {
+                c.checked = checked;
+            });
+            const tableMaster = document.getElementById('tableMasterCheck');
+            if (tableMaster) tableMaster.checked = checked;
+            updateCopyBtnState();
+        }
+
+        function toggleSelectAllResults(master) {
+            selectAllResults(master.checked);
+        }
+
+        function updateCopyBtnState() {
+            const selectedIdxs = getSelectedIndices();
+            const total = currentSearchResults.length;
+            const countTxt = document.getElementById('selectedCountText');
+            if (countTxt) {
+                countTxt.textContent = selectedIdxs.length > 0
+                    ? `(已選取 ${selectedIdxs.length} / 共 ${total} 筆)`
+                    : `(請勾選資料以複製)`;
+            }
+
+            const btn = document.getElementById('copyBtn');
+            if (btn) {
+                btn.textContent = selectedIdxs.length > 0
+                    ? `📋 複製選取的 ${selectedIdxs.length} 筆資料`
+                    : `📋 複製選取的資料`;
+            }
+        }
+
+        function formatRightFraction(r) {
+            if (r.right_numerator && r.right_denominator) {
+                return `${r.right_numerator}/${r.right_denominator}`;
+            }
+            return '1/1';
+        }
+
+        function copySelectedResults() {
+            const selectedIdxs = getSelectedIndices();
+            if (selectedIdxs.length === 0) {
+                showToast('⚠️ 請先勾選要複製的產權資料');
+                return;
+            }
+
+            const targetItems = selectedIdxs.map(idx => currentSearchResults[idx]).filter(Boolean);
+
+            let textBuf = `【宜蘭縣土地產權資料名冊】 (共 ${targetItems.length} 筆)\n`;
+            textBuf += `==================================================\n`;
+
+            targetItems.forEach((r, idx) => {
+                const sec = formatSectionDisplay(r);
+                const fractionStr = formatRightFraction(r);
+                const ownerName = r.owner_name || '—';
+                const ownerId = r.owner_unified_no || r.unified_no || '—';
+                const addr = r.address || '—';
+
+                textBuf += `${idx + 1}. 【地段地號】${sec.name} ${r.formatted_land_no}\n`;
+                textBuf += `   【所有權人】${ownerName} (${ownerId})\n`;
+                textBuf += `   【權利範圍】${fractionStr}\n`;
+                textBuf += `   【戶籍地址】${addr}\n`;
+                textBuf += `--------------------------------------------------\n`;
+            });
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textBuf).then(() => {
+                    showToast(`📋 已成功複製 ${targetItems.length} 筆資料到剪貼簿！`);
+                }).catch(() => fallbackCopy(textBuf, targetItems.length));
+            } else {
+                fallbackCopy(textBuf, targetItems.length);
+            }
+        }
+
+        function fallbackCopy(text, count) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast(`📋 已成功複製 ${count} 筆資料到剪貼簿！`);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toastMsg');
+            if (toast) {
+                toast.textContent = msg;
+                toast.classList.remove('hidden');
+                setTimeout(() => { toast.classList.add('hidden'); }, 3000);
+            }
+        }
+
+        function updateView() {
+            const cardView = document.getElementById('cardView');
+            const tableView = document.getElementById('tableView');
+
+            if (currentView === 'card') {
+                cardView.classList.remove('hidden');
+                tableView.classList.add('hidden');
+            } else {
+                cardView.classList.add('hidden');
+                tableView.classList.remove('hidden');
+            }
+        }
+
+        const _escapeMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+        const _escapeRe = /[&<>"']/g;
+        function escapeHtml(str) {
+            if (!str) return '—';
+            return String(str).replace(_escapeRe, ch => _escapeMap[ch]);
+        }
+
+        function formatDate(d) {
+            if (!d || d === 'None') return '—';
+            const s = d.padStart(7, '0');
+            return `${s.slice(0, -4)}/${s.slice(-4, -2)}/${s.slice(-2)}`;
+        }
+
+        function sourceClass(s) {
+            return s === '宜蘭所' ? 'yilan' : 'luodong';
+        }
+
+        function formatSectionDisplay(r) {
+            let nameStr = '';
+            if (r.town_name || r.section_name) {
+                nameStr = `${r.town_name} ${r.section_name}`.trim();
+            } else {
+                nameStr = '地段';
+            }
+            return {
+                code: r.section_no,
+                name: nameStr
+            };
+        }
+
+        function renderCards(results) {
+            const container = document.getElementById('cardView');
+            container.innerHTML = results.map((r, i) => {
+                const sec = formatSectionDisplay(r);
+                const fractionStr = formatRightFraction(r);
+                const priceStr = r.declared_price ? `NT$ ${Number(r.declared_price).toLocaleString()} 元/㎡` : '—';
+                const ownerDisp = r.owner_name ? `<span class="owner-clickable" onclick="openOwnerPortfolio('${escapeHtml(r.owner_name)}', '${escapeHtml(r.owner_unified_no || r.unified_no || '')}')">${escapeHtml(r.owner_name)}</span>` : '—';
+
+                return `
+                    <div class="card">
+                        <div class="card-header">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <input type="checkbox" class="result-check" data-idx="${i}" onchange="onResultCheckChange(${i}, this.checked)" style="width:18px; height:18px; cursor:pointer;" title="勾選此筆資料">
+                                <div class="card-section-title">
+                                    <span class="card-section-code">${escapeHtml(sec.code)}</span>
+                                    <span>${escapeHtml(sec.name)}</span>
+                                </div>
+                            </div>
+                            <span class="card-source ${sourceClass(r.source)}">${escapeHtml(r.source)}</span>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="card-field">
+                                <div class="field-icon">📍</div>
+                                <div class="field-content">
+                                    <div class="field-label">地號標示</div>
+                                    <div class="field-value highlight"><strong>${escapeHtml(r.formatted_land_no)}</strong></div>
+                                </div>
+                            </div>
+
+                            <div class="card-field">
+                                <div class="field-icon">👤</div>
+                                <div class="field-content">
+                                    <div class="field-label">所有權人 / 統號</div>
+                                    <div class="field-value">${ownerDisp} <span style="font-size:12px; color:var(--text-secondary); margin-left:4px;">(${escapeHtml(r.owner_unified_no || r.unified_no || '—')})</span></div>
+                                </div>
+                            </div>
+
+                            <div class="card-field">
+                                <div class="field-icon">⚖️</div>
+                                <div class="field-content">
+                                    <div class="field-label">權利範圍</div>
+                                    <div class="field-value">${escapeHtml(fractionStr)}</div>
+                                </div>
+                            </div>
+
+                            <div class="card-field">
+                                <div class="field-icon">💰</div>
+                                <div class="field-content">
+                                    <div class="field-label">申報地價</div>
+                                    <div class="field-value">${escapeHtml(priceStr)}</div>
+                                </div>
+                            </div>
+
+                            <div class="card-field">
+                                <div class="field-icon">🏠</div>
+                                <div class="field-content">
+                                    <div class="field-label">戶籍地址</div>
+                                    <div class="field-value wrap-address">${escapeHtml(r.address || '—')}</div>
+                                </div>
+                            </div>
+
+                            <div class="card-field">
+                                <div class="field-icon">📅</div>
+                                <div class="field-content">
+                                    <div class="field-label">登記日期</div>
+                                    <div class="field-value">${formatDate(r.reg_date)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderTable(results) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = results.map((r, i) => {
+                const sec = formatSectionDisplay(r);
+                const fractionStr = formatRightFraction(r);
+                const priceStr = r.declared_price ? `NT$ ${Number(r.declared_price).toLocaleString()}` : '—';
+                const ownerDisp = r.owner_name ? `<span class="owner-clickable" onclick="openOwnerPortfolio('${escapeHtml(r.owner_name)}', '${escapeHtml(r.owner_unified_no || r.unified_no || '')}')">${escapeHtml(r.owner_name)}</span>` : '—';
+
+                return `
+                    <tr>
+                        <td style="text-align:center;"><input type="checkbox" class="result-check" data-idx="${i}" onchange="onResultCheckChange(${i}, this.checked)" style="width:16px; height:16px; cursor:pointer;"></td>
+                        <td><span class="card-source ${sourceClass(r.source)}">${escapeHtml(r.source)}</span></td>
+                        <td><strong>${escapeHtml(sec.name)}</strong> <span style="color:var(--text-muted); font-size:11px;">(${escapeHtml(sec.code)})</span></td>
+                        <td class="col-nowrap"><strong>${escapeHtml(r.formatted_land_no)}</strong></td>
+                        <td>${ownerDisp}</td>
+                        <td class="col-nowrap" style="font-family:monospace;">${escapeHtml(r.owner_unified_no || r.unified_no || '—')}</td>
+                        <td>${escapeHtml(fractionStr)}</td>
+                        <td class="col-nowrap">${escapeHtml(priceStr)}</td>
+                        <td class="col-address">${escapeHtml(r.address || '—')}</td>
+                        <td class="col-nowrap">${formatDate(r.reg_date)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderPagination(current, total) {
+            const container = document.getElementById('pagination');
+            if (total <= 1) {
+                container.classList.add('hidden');
+                return;
+            }
+            container.classList.remove('hidden');
+
+            let html = `<button class="page-btn" ${current === 1 ? 'disabled' : ''} onclick="doSearch(${current - 1}, true)">❮ 上頁</button>`;
+            const pages = getPageNumbers(current, total);
+            pages.forEach(p => {
+                if (p === '...') {
+                    html += `<span class="page-ellipsis">…</span>`;
+                } else {
+                    html += `<button class="page-btn ${p === current ? 'active' : ''}" onclick="doSearch(${p}, true)">${p}</button>`;
+                }
+            });
+            html += `<button class="page-btn" ${current === total ? 'disabled' : ''} onclick="doSearch(${current + 1}, true)">下頁 ❯</button>`;
+            container.innerHTML = html;
+        }
+
+        function getPageNumbers(current, total) {
+            if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+            if (current <= 4) return [1, 2, 3, 4, 5, '...', total];
+            if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+            return [1, '...', current - 1, current, current + 1, '...', total];
+        }
+
+        // ========== Owner Portfolio Modal ==========
+        async function openOwnerPortfolio(name, unifiedNo) {
+            const modal = document.getElementById('ownerModal');
+            const body = document.getElementById('modalOwnerBody');
+            document.getElementById('modalOwnerName').textContent = `👤 ${name} 名下不動產跨所歸戶清冊`;
+            document.getElementById('modalOwnerSub').textContent = `身分證/統號：${unifiedNo || '對照查詢中'} ｜ 資料庫調閱極速彙整`;
+            
+            modal.classList.remove('hidden');
+            body.innerHTML = '<div class="spinner"></div><div style="text-align:center; color:var(--text-secondary);">調閱名下跨所不動產清冊中...</div>';
+
+            try {
+                const params = new URLSearchParams({ name: name, unified_no: unifiedNo || '' });
+                const res = await fetch(`/api/owner_summary?${params}`);
+                const data = await res.json();
+
+                let html = `
+                    <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+                        <span class="p-badge yilan">宜蘭地政所：${data.yilan_count} 筆</span>
+                        <span class="p-badge luodong">羅東地政所：${data.luodong_count} 筆</span>
+                        <span class="p-badge total">跨所總計：${data.total} 筆土地不動產</span>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>事務所</th>
+                                    <th>轄區地段名稱</th>
+                                    <th>地號</th>
+                                    <th>權利範圍</th>
+                                    <th>申報地價</th>
+                                    <th class="col-address">戶籍地址</th>
+                                    <th>登記日期</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                html += data.properties.map(p => `
+                    <tr>
+                        <td><span class="card-source ${sourceClass(p.source)}">${escapeHtml(p.source)}</span></td>
+                        <td><strong>${escapeHtml(p.town_name)} ${escapeHtml(p.section_name)}</strong> (${escapeHtml(p.section_no)})</td>
+                        <td><strong>${escapeHtml(p.formatted_land_no)}</strong></td>
+                        <td>${escapeHtml(p.right_numerator || '1')}/${escapeHtml(p.right_denominator || '1')}</td>
+                        <td>${p.declared_price ? `NT$ ${Number(p.declared_price).toLocaleString()}` : '—'}</td>
+                        <td class="col-address">${escapeHtml(p.address || '—')}</td>
+                        <td>${formatDate(p.reg_date)}</td>
+                    </tr>
+                `).join('');
+
+                html += `</tbody></table></div>`;
+                body.innerHTML = html;
+            } catch (e) {
+                console.error('Failed to load owner portfolio:', e);
+                body.innerHTML = '<div style="color:var(--accent-red); text-align:center;">調閱歸戶清冊失敗</div>';
+            }
+        }
+
+        function closeOwnerModal() {
+            document.getElementById('ownerModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
