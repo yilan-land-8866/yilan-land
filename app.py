@@ -855,16 +855,23 @@ def search():
                 params.extend([search_term] * 10)
 
 
-    where = ' AND '.join(conditions)
-
-    # 計算總筆數
-    count_sql = f'''
-        SELECT COUNT(*) 
-        FROM land_ownership l
-        LEFT JOIN section_mapping s ON l.section_no = s.section_no
-        WHERE {where}
-    '''
+    # ⚡ 效能優化：若條件僅涉及 land_ownership 表本身（如純地址、人名、統號），免除大表 JOIN
+    needs_section_join = 's.' in where
+    if needs_section_join:
+        count_sql = f'''
+            SELECT COUNT(*) 
+            FROM land_ownership l
+            LEFT JOIN section_mapping s ON l.section_no = s.section_no
+            WHERE {where}
+        '''
+    else:
+        count_sql = f'''
+            SELECT COUNT(*) 
+            FROM land_ownership l
+            WHERE {where}
+        '''
     total = conn.execute(count_sql, params).fetchone()[0]
+
 
     # 分頁
     total_pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
