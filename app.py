@@ -174,7 +174,7 @@ def add_security_headers(response):
 # ========== 效能優化：連線池與快取 ==========
 _conn_pool_lock = threading.Lock()
 _conn_pool = []  # 連線池
-_MAX_POOL_SIZE = 4
+_MAX_POOL_SIZE = 2
 
 # 預計算快取
 _section_count_cache = {}   # {(section_no, source): count}
@@ -212,16 +212,17 @@ LUODONG_OFFICE_TOWNS = ['羅東鎮', '五結鄉', '冬山鄉', '三星鄉', '蘇
 
 
 def _create_connection():
-    """建立一個經過效能調校的 SQLite 連線"""
+    """建立一個經過效能調校且記憶體輕量的 SQLite 連線"""
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute('PRAGMA journal_mode=WAL')
     conn.execute('PRAGMA synchronous=NORMAL')
-    conn.execute('PRAGMA cache_size=-32000')  # 32 MB page cache
+    conn.execute('PRAGMA cache_size=-8000')   # 8 MB page cache (低記憶體佔用)
     conn.execute('PRAGMA temp_store=MEMORY')
-    conn.execute('PRAGMA mmap_size=268435456')  # 256 MB memory-mapped I/O
-    conn.execute('PRAGMA query_only=ON')  # 唯讀加速 (寫入時另開連線)
+    conn.execute('PRAGMA mmap_size=33554432')  # 32 MB memory-mapped I/O
+    conn.execute('PRAGMA query_only=ON')      # 唯讀加速
     return conn
+
 
 
 def get_db():
