@@ -764,6 +764,7 @@ def search():
     1. 四級連動選擇 (事務所 -> 鄉鎮 -> 地段 -> 地號，支援新舊地段)
     2. 源頭對照新地段地號 ➔ 舊地段地號並調閱產權
     """
+    t_start = time.time()
     q = normalize_query_text(request.args.get('q', ''))
     selected_town = request.args.get('town_name', '').strip()
     selected_section = request.args.get('section_no', '').strip()
@@ -1104,12 +1105,15 @@ def search():
     release_db(conn)
 
 
+    server_duration = round((time.time() - t_start) * 1000, 2)
+
     return jsonify({
         'results': results,
         'total': total,
         'page': page,
         'pages': total_pages,
-        'owner_stats': owner_stats
+        'owner_stats': owner_stats,
+        'server_duration_ms': server_duration
     })
 
 
