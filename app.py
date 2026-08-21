@@ -68,7 +68,7 @@ def parse_address_tokens(q):
 
 
 # Auto-unzip / version sync land_data.zip for Cloud Deployment
-CURRENT_DB_VERSION = '2026_08_18_parcel_mapping_v3'
+CURRENT_DB_VERSION = '2026_08_22_perf_v4'
 _zip_p = os.path.join(_BASE_DIR, 'land_data.zip')
 _lock_p = os.path.join(_BASE_DIR, 'unzip.lock')
 _ver_p = os.path.join(_BASE_DIR, 'db_version.txt')
@@ -885,9 +885,9 @@ def search():
             sec_part = tokens[0]
             land_part = ' '.join(tokens[1:]) if len(tokens) > 1 else ''
             
-            sec_term = f'%{sec_part}%'
-            conditions.append('(l.section_no LIKE ? OR s.section_name LIKE ? OR s.town_name LIKE ? OR s.old_mapping_info LIKE ? OR s.new_section_names LIKE ?)')
-            params.extend([sec_term, sec_term, sec_term, sec_term, sec_term])
+            # ⚡ 先從 section_mapping 找出段號 (0.1ms)
+            sec_rows = conn.execute("SELECT section_no FROM section_mapping WHERE section_no = ? OR section_name = ? OR section_name LIKE ? OR town_name || section_name LIKE ?", (sec_part, sec_part, f"%{sec_part}%", f"%{sec_part}%")).fetchall()
+            matched_sec_nos = [r['section_no'] for r in sec_rows]
             
             match = re.search(r'(\d{1,4})(?:[─\-\_之\s]+(\d{1,4}))?', land_part)
             if match:
@@ -895,41 +895,72 @@ def search():
                 c = int(match.group(2)) if match.group(2) else 0
                 full_8 = f"{m:04d}{c:04d}"
                 m_prefix = f"{m:04d}%"
-                conditions.append('(l.land_no = ? OR l.land_no LIKE ? OR l.land_no LIKE ?)')
-                params.extend([full_8, m_prefix, f'%{land_part}%'])
+                if matched_sec_nos:
+                    ph = ','.join(['?'] * len(matched_sec_nos))
+                    conditions.append(f'(l.section_no IN ({ph}) AND (l.land_no = ? OR l.land_no LIKE ?))')
+                    params.extend(matched_sec_nos + [full_8, m_prefix])
+                else:
+                    sec_term = f'%{sec_part}%'
+                    conditions.append('(l.section_no LIKE ? OR s.section_name LIKE ? OR s.town_name LIKE ?)')
+                    params.extend([sec_term, sec_term, sec_term])
+                    conditions.append('(l.land_no = ? OR l.land_no LIKE ?)')
+                    params.extend([full_8, m_prefix])
             elif land_part:
-                conditions.append('l.land_no LIKE ?')
-                params.append(f'%{land_part}%')
+                if matched_sec_nos:
+                    ph = ','.join(['?'] * len(matched_sec_nos))
+                    conditions.append(f'(l.section_no IN ({ph}) AND l.land_no LIKE ?)')
+                    params.extend(matched_sec_nos + [f'%{land_part}%'])
+                else:
+                    conditions.append('l.land_no LIKE ?')
+                    params.append(f'%{land_part}%')
                 
-        # 情境 3: 單一關鍵字搜尋
+        # 情境 3: 單一關鍵字搜尋 (極速索引路由)
         else:
-            search_term = f'%{q}%'
+            q_clean = q.strip()
+            # 判斷是否為「身分證字號 / 統編」 (如 G100700440 或 8 碼公司統編)
+            is_id_or_unif = bool(re.match(r'^[A-Za-z][0-9]{8,9}$', q_clean) or (q_clean.isdigit() and len(q_clean) == 8))
             
-            match = re.search(r'^(\d{1,4})(?:[─\-\_之\s]+(\d{1,4}))?地?號?$', q)
-            if match and field in ('all', 'land'):
-                m = int(match.group(1))
-                c = int(match.group(2)) if match.group(2) else 0
+            # 判斷是否為「純中文姓名」 (2~5 字純中文，例如 蕭春來、林文吉、陳金木)
+            is_chinese_name = bool(re.match(r'^[\u4e00-\u9fa5]{2,5}$', q_clean) and not any(k in q_clean for k in ('段', '路', '街', '巷', '弄', '號', '村', '里', '鄉', '鎮', '市', '所')))
+
+            match_land = re.search(r'^(\d{1,4})(?:[─\-\_之\s]+(\d{1,4}))?地?號?$', q_clean)
+
+            if field == 'owner' or (field == 'all' and is_chinese_name):
+                # ⚡ 極速索引：先以精確人名命中 idx_owner
+                exact_owner_exists = conn.execute("SELECT 1 FROM land_ownership WHERE owner_name = ? LIMIT 1", (q_clean,)).fetchone()
+                if exact_owner_exists:
+                    conditions.append('l.owner_name = ?')
+                    params.append(q_clean)
+                else:
+                    # 前綴搜尋 (走 idx_owner 索引範圍)
+                    conditions.append('l.owner_name LIKE ?')
+                    params.append(f"{q_clean}%")
+
+            elif field == 'unified_no' or (field == 'all' and is_id_or_unif):
+                q_upper = q_clean.upper()
+                conditions.append('(l.owner_unified_no = ? OR l.unified_no = ?)')
+                params.extend([q_upper, q_upper])
+
+            elif match_land and field in ('all', 'land'):
+                m = int(match_land.group(1))
+                c = int(match_land.group(2)) if match_land.group(2) else 0
                 full_8 = f"{m:04d}{c:04d}"
                 m_prefix = f"{m:04d}%"
-                
-                conditions.append('(l.land_no = ? OR l.land_no LIKE ? OR l.section_no LIKE ? OR s.section_name LIKE ? OR s.town_name LIKE ? OR s.new_section_names LIKE ? OR l.owner_name LIKE ? OR l.owner_unified_no LIKE ? OR l.unified_no LIKE ? OR l.address LIKE ?)')
-                params.extend([full_8, m_prefix, search_term, search_term, search_term, search_term, search_term, search_term, search_term, search_term])
+                conditions.append('(l.land_no = ? OR l.land_no LIKE ?)')
+                params.extend([full_8, m_prefix])
+
             elif field == 'section':
+                search_term = f'%{q_clean}%'
                 conditions.append('(l.section_no LIKE ? OR s.section_name LIKE ? OR s.town_name LIKE ? OR s.old_mapping_info LIKE ? OR s.new_section_names LIKE ?)')
                 params.extend([search_term] * 5)
             elif field == 'land':
                 conditions.append('l.land_no LIKE ?')
-                params.append(search_term)
-            elif field == 'owner':
-                conditions.append('l.owner_name LIKE ?')
-                params.append(search_term)
-            elif field == 'unified_no':
-                conditions.append('(l.owner_unified_no LIKE ? OR l.unified_no LIKE ?)')
-                params.extend([search_term, search_term])
+                params.append(f"%{q_clean}%")
             elif field == 'address':
                 conditions.append('l.address LIKE ?')
-                params.append(search_term)
+                params.append(f'%{q_clean}%')
             else:
+                search_term = f'%{q_clean}%'
                 conditions.append('(l.section_no LIKE ? OR s.section_name LIKE ? OR s.town_name LIKE ? OR s.old_mapping_info LIKE ? OR s.new_section_names LIKE ? OR l.land_no LIKE ? OR l.owner_name LIKE ? OR l.owner_unified_no LIKE ? OR l.unified_no LIKE ? OR l.address LIKE ?)')
                 params.extend([search_term] * 10)
 
@@ -1012,14 +1043,37 @@ def search():
             }
 
     results = []
+    # ⚡ 批次查詢重測新地號對照 (以 1 次 SQL 取代 50 次迴圈查詢)
+    mapping_dict = {}
+    if rows:
+        old_pairs = [(r['section_no'], r['land_no']) for r in rows if r['section_no'] and r['land_no']]
+        if old_pairs:
+            ph = ','.join(['(?, ?)'] * len(old_pairs))
+            flat_params = [item for sublist in old_pairs for item in sublist]
+            try:
+                mapping_rows = conn.execute(f'''
+                    SELECT old_sec_code, old_land_raw, new_sec_name, new_land_formatted
+                    FROM parcel_mapping
+                    WHERE (old_sec_code, old_land_raw) IN (VALUES {ph})
+                ''', flat_params).fetchall()
+                for mr in mapping_rows:
+                    mapping_dict[(mr['old_sec_code'], mr['old_land_raw'])] = f"{mr['new_sec_name']} {mr['new_land_formatted']}"
+            except Exception:
+                pass
+
     for row in rows:
         formatted_land = format_land_no(row['land_no'])
         owner_name = row['owner_name'] or ''
         sec_no = row['section_no']
 
-        # 查驗是否有對應的重測後新地號
-        pm_row = conn.execute("SELECT new_sec_name, new_land_formatted FROM parcel_mapping WHERE old_sec_code = ? AND old_land_raw = ? LIMIT 1", (sec_no, row['land_no'])).fetchone()
-        new_mapping_info = f"{pm_row['new_sec_name']} {pm_row['new_land_formatted']}" if pm_row else ""
+        new_mapping_info = mapping_dict.get((sec_no, row['land_no']), '')
+        if not new_mapping_info:
+            try:
+                pm_row = conn.execute("SELECT new_sec_name, new_land_formatted FROM parcel_mapping WHERE old_sec_code = ? AND old_land_raw = ? LIMIT 1", (sec_no, row['land_no'])).fetchone()
+                if pm_row:
+                    new_mapping_info = f"{pm_row['new_sec_name']} {pm_row['new_land_formatted']}"
+            except Exception:
+                pass
 
         results.append({
             'source': row['source'],
